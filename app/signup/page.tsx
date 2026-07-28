@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Poppins } from "next/font/google";
 
 const poppins = Poppins({
@@ -12,7 +12,8 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
-export default function LoginPage() {
+export default function SignupPage() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +22,7 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!name || !email || !password) return;
 
     if (!email.toLowerCase().endsWith("@intoaec.ai")) {
       setEmailError("Email must end with @intoaec.ai");
@@ -31,10 +32,9 @@ export default function LoginPage() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      alert(`Logging in with: ${email}`);
+      alert(`Account created for: ${name} (${email})`);
     }, 1500);
   };
-
 
   return (
     <div className={`min-h-screen w-full flex flex-col md:flex-row bg-white ${poppins.variable} font-sans`}>
@@ -54,7 +54,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Section - Login Card */}
+      {/* Right Section - Signup Card */}
       <div className="w-full md:flex-1 bg-[#1976D2] flex items-center justify-center p-6 sm:p-8 md:p-12 relative overflow-hidden min-h-[600px] md:min-h-screen">
 
         {/* Background Decorations (Light curved outline circles) */}
@@ -67,18 +67,33 @@ export default function LoginPage() {
         {/* Top-left subtle circle design for added visual flavor */}
         <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full border border-white/5 pointer-events-none select-none" />
 
-        {/* Login Card */}
+        {/* Signup Card */}
         <div className="w-full max-w-[380px] bg-white rounded-xl shadow-xl shadow-black/15 p-8 sm:p-10 z-10 transition-all duration-300 hover:shadow-2xl">
           <div className="mb-8">
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
-              Welcome Back
+              Hello!
             </h1>
             <p className="text-sm font-medium text-gray-500">
-              Sign in to your account
+              Sign up to get started
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name Input */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                <User className="h-5 w-5" />
+              </div>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Full Name"
+                className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/25 outline-none transition-all duration-200 placeholder:text-gray-400 text-gray-700 text-sm"
+              />
+            </div>
+
             {/* Email Input */}
             <div>
               <div className="relative">
@@ -134,7 +149,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Login Button */}
+            {/* Signup Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -144,31 +159,21 @@ export default function LoginPage() {
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  Login
+                  Sign Up
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Forgot Password Link */}
-          <div className="mt-5 text-center">
-            <a
-              href="#"
-              className="text-xs font-medium text-[#1976D2] hover:text-[#1565C0] hover:underline transition-colors"
-            >
-              Forgot Password?
-            </a>
-          </div>
-
-          {/* Sign Up Link */}
+          {/* Footer Links */}
           <div className="mt-6 text-center text-xs font-medium text-gray-500">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/signup"
+              href="/login"
               className="font-semibold text-[#1976D2] hover:text-[#1565C0] hover:underline transition-colors"
             >
-              Sign Up
+              Log In
             </Link>
           </div>
         </div>
