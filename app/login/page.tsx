@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Poppins } from "next/font/google";
 
@@ -13,6 +14,7 @@ const poppins = Poppins({
 });
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -31,8 +33,8 @@ export default function LoginPage() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      alert(`Logging in with: ${email}`);
-    }, 1500);
+      router.push("/dashboard");
+    }, 1000);
   };
 
 

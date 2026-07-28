@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Poppins } from "next/font/google";
 
@@ -13,6 +14,7 @@ const poppins = Poppins({
 });
 
 export default function SignupPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,8 +34,8 @@ export default function SignupPage() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      alert(`Account created for: ${name} (${email})`);
-    }, 1500);
+      router.push("/dashboard");
+    }, 1000);
   };
 
   return (
