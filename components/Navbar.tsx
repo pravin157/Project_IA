@@ -6,7 +6,9 @@ import {
   Settings,
   Zap,
   MonitorPlay,
+  LogOut,
 } from 'lucide-react';
+import { performCompleteLogout } from '@/utils/logout';
 
 interface NavbarProps {
   searchQuery: string;
@@ -23,6 +25,7 @@ interface NavbarProps {
   onOpenPresentation: () => void;
   hasPresentationData: boolean;
 }
+
 
 export const Navbar: React.FC<NavbarProps> = ({
   searchQuery,
@@ -157,7 +160,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Settings className="w-4 h-4" />
             </button>
+
+            <button
+              onClick={() => performCompleteLogout()}
+              title="Log out completely"
+              className="p-2 rounded-lg text-slate-400 border transition-all hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10"
+              style={{ background: 'rgba(30,41,59,0.8)', borderColor: 'rgba(51,65,85,0.8)' }}
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
+
         </div>
 
         {/* Mobile search */}

@@ -45,6 +45,17 @@ export default function CustomerSuccessDashboardPage() {
   const [aiInitialPrompt, setAiInitialPrompt] = useState('');
   const [aiContextData, setAiContextData] = useState<unknown>(null);
   const [selectedAccount, setSelectedAccount] = useState<AccountSummary | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const hasAuthCookie = typeof document !== 'undefined' && document.cookie.includes('auth_session=true');
+    const hasUserStorage = typeof localStorage !== 'undefined' && localStorage.getItem('user');
+    if (!hasAuthCookie && !hasUserStorage) {
+      window.location.href = '/login';
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const [filter, setFilter] = useState<DashboardFilter>({
     searchQuery: '',
@@ -56,6 +67,7 @@ export default function CustomerSuccessDashboardPage() {
   });
 
   const loadDashboardData = useCallback(async () => {
+    if (!isAuthenticated) return;
     setIsLoading(true);
     setError(null);
     setLoadSourceHint('Loading paid customers and health scores…');
@@ -93,18 +105,21 @@ export default function CustomerSuccessDashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [customApiKey]);
+  }, [customApiKey, isAuthenticated]);
 
   useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
+    if (isAuthenticated) {
+      loadDashboardData();
+    }
+  }, [isAuthenticated, loadDashboardData]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     const id = window.setInterval(() => {
       loadDashboardData();
     }, REFRESH_MS);
     return () => window.clearInterval(id);
-  }, [loadDashboardData]);
+  }, [isAuthenticated, loadDashboardData]);
 
   const paidOrgsMap = useMemo(() => {
     const map = new Map<string, PaymasterOrganization>();
@@ -136,6 +151,14 @@ Please keep the tone helpful, non-technical, and focused on offering a 15-minute
     setAiContextData({ orgName, orgId, score });
     setIsAiModalOpen(true);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#080d15] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const accounts = data?.accounts || [];
 

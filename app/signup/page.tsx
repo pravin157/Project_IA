@@ -21,21 +21,48 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password) return;
+    setError("");
 
-    if (!email.toLowerCase().endsWith("@intoaec.ai")) {
+    const cleanedName = name.trim();
+    const cleanedEmail = email.trim().toLowerCase();
+    const cleanedPassword = password.trim();
+
+    if (!cleanedName || !cleanedEmail || !cleanedPassword) return;
+
+    if (!cleanedEmail.endsWith("@intoaec.ai")) {
       setEmailError("Email must end with @intoaec.ai");
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: cleanedName, email: cleanedEmail, password: cleanedPassword }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Failed to sign up");
+      } else {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify({ name: cleanedName, email: cleanedEmail }));
+        }
+        window.location.href = "/dashboard";
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+      console.error(err);
+    } finally {
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    }
   };
 
   return (
@@ -81,6 +108,12 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 text-xs text-red-600 bg-red-50 rounded-lg text-center font-medium border border-red-200">
+                {error}
+              </div>
+            )}
+
             {/* Name Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">

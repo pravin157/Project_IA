@@ -8,13 +8,36 @@ import {
   LayoutGrid,
   ArrowRight
 } from 'lucide-react';
+import { performCompleteLogout } from '@/utils/logout';
 
 export default function DashboardPortalPage() {
   const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    const hasAuthCookie = typeof document !== 'undefined' && document.cookie.includes('auth_session=true');
+    const hasUserStorage = typeof localStorage !== 'undefined' && localStorage.getItem('user');
+    if (!hasAuthCookie && !hasUserStorage) {
+      window.location.href = '/login';
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const handleLogout = () => {
-    router.push('/login');
+    performCompleteLogout();
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#080d15] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+
+
 
   const dashboard = {
     id: 'customer-success',
@@ -30,7 +53,7 @@ export default function DashboardPortalPage() {
 
   return (
     <div className="min-h-screen text-slate-100 antialiased font-sans flex flex-col pb-12" style={{ background: '#080d15' }}>
-      
+
       {/* Header / Navbar */}
       <header className="border-b" style={{ background: 'rgba(8,13,21,0.95)', borderColor: 'rgba(51,65,85,0.4)', backdropFilter: 'blur(20px)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -68,7 +91,7 @@ export default function DashboardPortalPage() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col justify-center">
-        
+
         {/* Welcome Section */}
         <div className="mb-10 text-center sm:text-left">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase mb-3"
@@ -107,7 +130,7 @@ export default function DashboardPortalPage() {
                   style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(51,65,85,0.6)' }}>
                   <Icon className="w-6 h-6 text-sky-400 group-hover:text-sky-300" />
                 </div>
-                
+
                 {/* Active Status Badge */}
                 <span className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold rounded-lg"
                   style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.25)' }}>

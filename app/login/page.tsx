@@ -20,21 +20,47 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    setError("");
 
-    if (!email.toLowerCase().endsWith("@intoaec.ai")) {
+    const cleanedEmail = email.trim().toLowerCase();
+    const cleanedPassword = password.trim();
+
+    if (!cleanedEmail || !cleanedPassword) return;
+
+    if (!cleanedEmail.endsWith("@intoaec.ai")) {
       setEmailError("Email must end with @intoaec.ai");
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: cleanedEmail, password: cleanedPassword }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Failed to log in");
+      } else {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+        window.location.href = "/dashboard";
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+      console.error(err);
+    } finally {
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    }
   };
 
 
@@ -81,6 +107,12 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 text-xs text-red-600 bg-red-50 rounded-lg text-center font-medium border border-red-200">
+                {error}
+              </div>
+            )}
+
             {/* Email Input */}
             <div>
               <div className="relative">
