@@ -50,9 +50,6 @@ export default function LoginPage() {
       if (!response.ok) {
         setError(data.error || "Failed to log in");
       } else {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
         window.location.href = "/dashboard";
       }
     } catch (err) {

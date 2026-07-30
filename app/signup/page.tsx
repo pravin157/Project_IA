@@ -21,6 +21,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +39,16 @@ export default function SignupPage() {
       return;
     }
 
+    if (cleanedPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      return;
+    }
+    if (cleanedPassword.length > 72) {
+      setPasswordError("Password must be 72 characters or fewer");
+      return;
+    }
+    setPasswordError("");
+
     setIsLoading(true);
     try {
       const response = await fetch("/api/auth/signup", {
@@ -52,9 +63,6 @@ export default function SignupPage() {
       if (!response.ok) {
         setError(data.error || "Failed to sign up");
       } else {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("user", JSON.stringify({ name: cleanedName, email: cleanedEmail }));
-        }
         window.location.href = "/dashboard";
       }
     } catch (err) {
@@ -167,9 +175,16 @@ export default function SignupPage() {
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError("");
+                }}
                 placeholder="Password"
-                className="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/25 outline-none transition-all duration-200 placeholder:text-gray-400 text-gray-700 text-sm"
+                className={`w-full pl-12 pr-12 py-3 rounded-full border ${
+                  passwordError
+                    ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/25"
+                    : "border-gray-300 focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/25"
+                } outline-none transition-all duration-200 placeholder:text-gray-400 text-gray-700 text-sm`}
               />
               <button
                 type="button"
@@ -183,6 +198,11 @@ export default function SignupPage() {
                 )}
               </button>
             </div>
+            {passwordError && (
+              <p className="text-red-500 text-[11px] font-medium mt-1 ml-4 animate-fade-in">
+                {passwordError}
+              </p>
+            )}
 
             {/* Signup Button */}
             <button

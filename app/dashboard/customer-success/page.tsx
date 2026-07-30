@@ -48,13 +48,33 @@ export default function CustomerSuccessDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const hasAuthCookie = typeof document !== 'undefined' && document.cookie.includes('auth_session=true');
-    const hasUserStorage = typeof localStorage !== 'undefined' && localStorage.getItem('user');
-    if (!hasAuthCookie && !hasUserStorage) {
-      window.location.href = '/login';
-    } else {
-      setIsAuthenticated(true);
-    }
+    const checkAuth = async () => {
+      try {
+        // Check if the access token is valid via server-side verification
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            setIsAuthenticated(true);
+            return;
+          }
+        }
+
+        // Access token expired — try to refresh
+        const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
+        if (refreshRes.ok) {
+          setIsAuthenticated(true);
+          return;
+        }
+
+        // Both tokens invalid — redirect to login
+        window.location.href = '/login';
+      } catch {
+        window.location.href = '/login';
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const [filter, setFilter] = useState<DashboardFilter>({

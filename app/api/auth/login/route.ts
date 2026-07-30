@@ -1,9 +1,33 @@
 import { NextResponse } from 'next/server';
 import pool, { initDb } from '@/utils/db';
 import { verifyPassword, hashPassword } from '@/utils/auth';
+import {
+  signAccessToken,
+  signRefreshToken,
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+  ACCESS_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
+  REFRESH_TOKEN_MAX_AGE,
+} from '@/lib/auth';
+import crypto from 'crypto';
+import { rateLimit, getClientIp } from '@/utils/rate-limit';
 
 export async function POST(request: Request) {
   try {
+    // ── Rate limiting: 5 attempts per IP per minute ────────
+    const ip = getClientIp(request);
+    const { allowed, retryAfterMs } = rateLimit(`login:${ip}`, 5, 60_000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again in a minute.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) },
+        }
+      );
+    }
+
     const { email, password } = await request.json().catch(() => ({}));
     const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const cleanPassword = typeof password === 'string' ? password.trim() : '';
@@ -20,7 +44,10 @@ export async function POST(request: Request) {
     await initDb();
 
     // Query user with trimmed and case-insensitive email match
-    const res = await pool.query('SELECT id, name, password FROM users WHERE LOWER(TRIM(email)) = $1', [cleanEmail]);
+    const res = await pool.query(
+      'SELECT id, name, email, password, role FROM users WHERE LOWER(TRIM(email)) = $1',
+      [cleanEmail]
+    );
     if (res.rows.length === 0) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
@@ -39,26 +66,46 @@ export async function POST(request: Request) {
       await pool.query('UPDATE users SET password = $1 WHERE id = $2', [newHash, user.id]).catch(() => { });
     }
 
+    // ── Generate JWT access token (15 min) ────────────────
+    const accessToken = await signAccessToken({
+      userId: String(user.id),
+      role: user.role || 'user',
+      email: cleanEmail,
+    });
+
+    // ── Generate refresh token (7 days) with unique JTI ───
+    const jti = crypto.randomUUID();
+    const refreshToken = await signRefreshToken({
+      userId: String(user.id),
+      jti,
+    });
+
+    // ── Store refresh token JTI in DB for revocation ──────
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE * 1000);
+    await pool.query(
+      'INSERT INTO refresh_tokens (user_id, token_jti, expires_at) VALUES ($1, $2, $3)',
+      [user.id, jti, expiresAt]
+    );
+
+    // ── Build response & set cookies ──────────────────────
     const response = NextResponse.json({
       success: true,
       message: 'Logged in successfully',
       user: {
+        id: String(user.id),
         name: user.name,
         email: cleanEmail,
-      }
+        role: user.role || 'user',
+      },
     });
 
-    // Set auth cookie
-    response.cookies.set('auth_session', 'true', {
-      path: '/',
-      maxAge: 86400 * 7, // 7 days
-      httpOnly: false,
-    });
+    response.cookies.set(ACCESS_TOKEN_COOKIE, accessToken, ACCESS_COOKIE_OPTIONS);
+    response.cookies.set(REFRESH_TOKEN_COOKIE, refreshToken, REFRESH_COOKIE_OPTIONS);
 
     return response;
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error('Login error:', msg);
-    return NextResponse.json({ error: 'Internal server error', details: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
