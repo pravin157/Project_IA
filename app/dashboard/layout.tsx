@@ -33,7 +33,12 @@ const menuItems: MenuItem[] = [
   {
     title: 'Sales',
     icon: TrendingUp,
-    submenu: [] // Structured for future additions
+    submenu: [
+      {
+        title: 'Sales Dashboard',
+        path: '/dashboard/sales',
+      }
+    ]
   },
   {
     title: 'Customer Success',
