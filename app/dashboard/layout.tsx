@@ -37,6 +37,10 @@ const menuItems: MenuItem[] = [
       {
         title: 'Sales Dashboard',
         path: '/dashboard/sales',
+      },
+      {
+        title: 'Discount Module',
+        path: '/dashboard/sales/discount',
       }
     ]
   },
