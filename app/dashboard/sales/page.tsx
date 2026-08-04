@@ -1,59 +1,176 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import { 
-  Building2, 
-  Calendar, 
-  CreditCard, 
-  ArrowRight, 
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Building2,
+  Calendar,
+  CreditCard,
+  ArrowRight,
   CheckCircle2,
   Clock,
-  Briefcase
+  Briefcase,
+  X
 } from 'lucide-react';
-
-// Dummy data for companies
-const MOCK_COMPANIES = [
-  { id: '1', name: 'Acme Corporation', plan: 'Enterprise Plan', expiresAt: '2026-08-15' },
-  { id: '2', name: 'Globex Inc', plan: 'Professional Plan', expiresAt: '2026-09-01' },
-  { id: '3', name: 'Soylent Corp', plan: 'Starter Plan', expiresAt: '2026-08-05' },
-  { id: '4', name: 'Initech', plan: 'Enterprise Plan', expiresAt: '2026-11-20' },
-  { id: '5', name: 'Massive Dynamic', plan: 'Professional Plan', expiresAt: '2026-12-31' },
-];
 
 export default function SalesDashboardPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [extensionDate, setExtensionDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Find the currently selected company details
-  const selectedCompany = useMemo(() => {
-    return MOCK_COMPANIES.find(c => c.id === selectedCompanyId) || null;
-  }, [selectedCompanyId]);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
+  const [orgsError, setOrgsError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [currentSubscription, setCurrentSubscription] = useState<any | null>(null);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+
+  const selectedCompanyName = useMemo(() => {
+    const org = organizations.find(o => o.organizationId === selectedCompanyId);
+    return org ? org.organizationName : '';
+  }, [selectedCompanyId, organizations]);
+
+  // Fetch all organizations when the page loads
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      setIsLoadingOrgs(true);
+      setOrgsError(null);
+      try {
+        const res = await fetch('/api/paymaster', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventType: 'GET_ORGANIZATIONS_WITH_USER_COUNT' })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data && Array.isArray(data.body)) {
+          // Sort alphabetically by organizationName
+          const sorted = data.body.sort((a: any, b: any) => {
+            const nameA = (a.organizationName || '').toLowerCase();
+            const nameB = (b.organizationName || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+          });
+          setOrganizations(sorted);
+        } else {
+          throw new Error(data.message || 'Failed to retrieve organizations.');
+        }
+      } catch (err: any) {
+        console.error(err);
+        setOrgsError(err.message || 'Failed to load companies.');
+      } finally {
+        setIsLoadingOrgs(false);
+      }
+    };
+    fetchOrgs();
+  }, []);
+
+  // Fetch subscription details for the selected company
+  const handleSelectCompany = async (orgId: string) => {
+    setSelectedCompanyId(orgId);
+    setIsSuccess(false);
+    setExtensionDate('');
+    setSubscriptionError(null);
+
+    if (!orgId) {
+      setCurrentSubscription(null);
+      return;
+    }
+
+    setIsLoadingSubscription(true);
+    setCurrentSubscription(null);
+
+    try {
+      const res = await fetch('/api/paymaster', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'GET_ORGANIZATION_SUBSCRIPTION_DETAILS',
+          organizationId: orgId
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data && data.code === 'ORGANIZATION_SUBSCRIPTION_RETRIEVED') {
+        setCurrentSubscription(data.body);
+      } else {
+        throw new Error(data.message || 'Failed to retrieve subscription details.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setSubscriptionError(err.message || 'Failed to load subscription details.');
+    } finally {
+      setIsLoadingSubscription(false);
+    }
+  };
+
+  // Helper to format timestamp
+  const formatTimestamp = (ts: string | number | null | undefined) => {
+    if (!ts) return 'N/A';
+    const val = typeof ts === 'string' ? Number(ts) : ts;
+    if (isNaN(val)) return 'N/A';
+    return new Date(val).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Helper to get min extension date
+  const getMinExtensionDate = (validTill: string | number | null | undefined) => {
+    if (!validTill) return undefined;
+    const val = typeof validTill === 'string' ? Number(validTill) : validTill;
+    if (isNaN(val)) return undefined;
+    // Add 1 day to the current expiry date for the input type="date" min attribute
+    const d = new Date(val + 24 * 60 * 60 * 1000);
+    return d.toISOString().split('T')[0];
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCompany || !extensionDate) return;
+    if (!selectedCompanyId || !extensionDate || !currentSubscription) return;
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setIsSuccess(false);
+    setSubscriptionError(null);
+
+    try {
+      const res = await fetch('/api/paymaster-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'EXTEND_SUBSCRIPTION_DATE',
+          organizationId: selectedCompanyId,
+          subscriptionId: currentSubscription.organizationSubscriptionId,
+          extendedToDate: extensionDate
+        })
+      });
+      // Always read the response body so we can display actual error messages
+      const data = await res.json();
+      if (res.ok && data?.code === 'SUBSCRIPTION_EXPIRY_EXTENDED') {
+        setIsSuccess(true);
+        setShowSuccessModal(true);
+        // Refresh subscription details
+        await handleSelectCompany(selectedCompanyId);
+        // Reset success indicator after 5 seconds
+        setTimeout(() => {
+          setIsSuccess(false);
+        }, 5000);
+      } else {
+        throw new Error(data?.error || data?.message || `Request failed (HTTP ${res.status})`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setSubscriptionError(err.message || 'An error occurred while extending the subscription.');
+    } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
-      
-      // Reset success message after 3 seconds
-      setTimeout(() => {
-        setIsSuccess(false);
-        setSelectedCompanyId('');
-        setExtensionDate('');
-      }, 3000);
-    }, 1500);
+    }
   };
 
   return (
     <div className="w-full h-full p-6 sm:p-8 lg:p-12 overflow-y-auto">
-      
+
       {/* Header Section */}
       <div className="max-w-4xl mx-auto mb-10">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase mb-4"
@@ -71,16 +188,16 @@ export default function SalesDashboardPage() {
 
       {/* Main Card */}
       <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
-        
+
         {/* Form Column */}
         <div className="lg:col-span-3">
           <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-            
+
             {/* Background Decorations */}
             <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-sky-500/10 blur-3xl rounded-full pointer-events-none" />
-            
+
             <form onSubmit={handleSubmit} className="relative z-10 space-y-6">
-              
+
               {/* Field 1: Company Selection */}
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -90,17 +207,17 @@ export default function SalesDashboardPage() {
                 <div className="relative">
                   <select
                     value={selectedCompanyId}
-                    onChange={(e) => {
-                      setSelectedCompanyId(e.target.value);
-                      setIsSuccess(false);
-                    }}
+                    onChange={(e) => handleSelectCompany(e.target.value)}
                     required
                     className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
+                    disabled={isLoadingOrgs}
                   >
-                    <option value="" disabled>Choose a client...</option>
-                    {MOCK_COMPANIES.map(company => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
+                    <option value="" disabled>
+                      {isLoadingOrgs ? 'Loading companies...' : 'Choose a client...'}
+                    </option>
+                    {organizations.map(company => (
+                      <option key={company.organizationId} value={company.organizationId}>
+                        {company.organizationName || `Unnamed (${company.organizationId.substring(0, 8)})`}
                       </option>
                     ))}
                   </select>
@@ -111,48 +228,122 @@ export default function SalesDashboardPage() {
                 </div>
               </div>
 
-              {/* Field 2: Current Subscription (Read Only) */}
-              <div className={`transition-all duration-300 ${selectedCompany ? 'opacity-100 h-auto' : 'opacity-40 pointer-events-none'}`}>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-emerald-400" />
-                  Current Subscription
-                </label>
-                <div className="bg-[#080d15] border border-slate-700/80 rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-white font-medium text-sm">
-                      {selectedCompany ? selectedCompany.plan : 'No plan selected'}
-                    </div>
-                    <div className="text-slate-500 text-xs flex items-center gap-1 mt-1">
-                      <Clock className="w-3 h-3" />
-                      Expires: {selectedCompany ? new Date(selectedCompany.expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '--/--/----'}
+              {/* Field 2: Current Subscription Details */}
+              <div className="transition-all duration-300">
+                {isLoadingSubscription ? (
+                  <div className="bg-[#080d15] border border-slate-700/80 rounded-xl p-6 flex flex-col items-center justify-center gap-3">
+                    <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
+                    <span className="text-slate-400 text-xs font-medium">Fetching subscription details...</span>
+                  </div>
+                ) : selectedCompanyId && !currentSubscription ? (
+                  <div className="bg-[#080d15] border border-red-500/20 rounded-xl p-6 text-center text-slate-400 text-sm">
+                    <CreditCard className="w-8 h-8 text-red-400 mx-auto mb-2 opacity-60" />
+                    <p className="font-semibold text-slate-300">No subscription found</p>
+                    <p className="text-xs text-slate-500 mt-1">This organization does not have an active billing plan.</p>
+                  </div>
+                ) : currentSubscription ? (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-emerald-400" />
+                      Current Subscription
+                    </label>
+                    <div className="bg-[#080d15] border border-slate-700/80 rounded-xl p-5 space-y-4 relative overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">PLAN ID</span>
+                          <span className="text-white font-mono text-xs bg-[#0b1120] border border-slate-800 px-2.5 py-1 rounded-md">
+                            {currentSubscription.subscriptionPlanId || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          {currentSubscription.isSubscriptionPlanActive && !currentSubscription.isDeactivated ? (
+                            <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider">
+                              Inactive
+                            </span>
+                          )}
+                          {currentSubscription.isFreeTrial && (
+                            <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+                              Free Trial
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/80 text-xs">
+                        <div>
+                          <span className="text-slate-500 block mb-0.5 font-medium">Valid From</span>
+                          <span className="text-slate-300">{formatTimestamp(currentSubscription.subscriptionValidFrom)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block mb-0.5 font-medium">Expires At</span>
+                          <span className="text-slate-300 flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            {formatTimestamp(currentSubscription.subscriptionValidTill)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block mb-0.5 font-medium">Billing Tenure</span>
+                          <span className="text-slate-300 capitalize">{currentSubscription.paymentTenure || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block mb-0.5 font-medium">Auto Debit</span>
+                          <span className="text-slate-300">
+                            {currentSubscription.isRecurringAutoDebit ? 'Enabled (Recurring)' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block mb-0.5 font-medium">Licenses Allocated</span>
+                          <span className="text-slate-300">{currentSubscription.licenseCount ?? 0}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block mb-0.5 font-medium">Licenses Used</span>
+                          <span className="text-slate-300">{currentSubscription.licenseCountUsed ?? 0}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  {selectedCompany && (
-                    <div className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                      Active
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="bg-[#080d15]/50 border border-slate-800/80 rounded-xl p-4 text-center text-slate-500 text-xs">
+                    Select a company to load subscription details.
+                  </div>
+                )}
               </div>
 
               {/* Field 3: Extend Subscription Date */}
-              <div className={`transition-all duration-300 ${selectedCompany ? 'opacity-100 h-auto' : 'opacity-40 pointer-events-none'}`}>
+              <div className={`transition-all duration-300 ${currentSubscription ? 'opacity-100 h-auto' : 'opacity-40 pointer-events-none'}`}>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-purple-400" />
                   Extend To Date
                 </label>
                 <input
                   type="date"
-                  required={!!selectedCompany}
+                  required={!!currentSubscription}
                   value={extensionDate}
-                  min={selectedCompany ? selectedCompany.expiresAt : undefined}
+                  min={getMinExtensionDate(currentSubscription?.subscriptionValidTill)}
                   onChange={(e) => setExtensionDate(e.target.value)}
                   className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all custom-calendar-icon"
                 />
               </div>
 
-              {/* Submit Button & Success Message */}
-              <div className="pt-2">
+              {/* Submit Button & Notifications */}
+              <div className="pt-2 space-y-4">
+                {subscriptionError && (
+                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex gap-2 animate-fade-in">
+                    <span className="font-bold">Error:</span>
+                    <span>{subscriptionError}</span>
+                  </div>
+                )}
+                {orgsError && (
+                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex gap-2 animate-fade-in">
+                    <span className="font-bold">Error:</span>
+                    <span>{orgsError}</span>
+                  </div>
+                )}
+
                 {isSuccess ? (
                   <div className="w-full py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2 animate-fade-in">
                     <CheckCircle2 className="w-5 h-5" />
@@ -161,7 +352,7 @@ export default function SalesDashboardPage() {
                 ) : (
                   <button
                     type="submit"
-                    disabled={!selectedCompany || !extensionDate || isSubmitting}
+                    disabled={!currentSubscription || !extensionDate || isSubmitting}
                     className="w-full py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-[0.98] text-white font-semibold text-sm transition-all duration-200 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
                   >
                     {isSubmitting ? (
@@ -180,7 +371,7 @@ export default function SalesDashboardPage() {
           </div>
         </div>
 
-        {/* Info Column
+        {/* Info Column */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-xl">
             <h3 className="text-white font-bold mb-3 flex items-center gap-2 text-sm">
@@ -198,16 +389,56 @@ export default function SalesDashboardPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
-                Once confirmed, the client will automatically receive an email receipt.
+                Once confirmed, the client's subscription expiry date will immediately update.
               </li>
             </ul>
           </div>
-        </div> */}
+        </div>
 
       </div>
-      
+
+      {/* Success Modal Popup */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#0b1120] border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl relative animate-scale-up">
+            <button 
+              onClick={() => setShowSuccessModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 mb-5 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Subscription Extended!</h2>
+              <p className="text-slate-400 text-sm mb-6">
+                The billing plan for <span className="text-sky-400 font-semibold">{selectedCompanyName}</span> has been successfully updated.
+              </p>
+              <div className="bg-[#080d15] border border-slate-800 rounded-xl p-4 w-full mb-6 text-left space-y-2.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500">New Expiry Date</span>
+                  <span className="text-emerald-400 font-semibold">{formatTimestamp(currentSubscription?.subscriptionValidTill)}</span>
+                </div>
+                <div className="flex justify-between text-xs border-t border-slate-800/80 pt-2.5">
+                  <span className="text-slate-500">Plan ID</span>
+                  <span className="text-slate-300 font-mono">{currentSubscription?.subscriptionPlanId || 'N/A'}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-sm transition-all shadow-[0_0_15px_rgba(14,165,233,0.2)]"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Custom styles for native date picker icon to blend with dark mode */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-calendar-icon::-webkit-calendar-picker-indicator {
           filter: invert(1);
           opacity: 0.5;
@@ -215,6 +446,20 @@ export default function SalesDashboardPage() {
         }
         .custom-calendar-icon::-webkit-calendar-picker-indicator:hover {
           opacity: 0.8;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleUp {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.2s ease-out forwards;
+        }
+        .animate-scale-up {
+          animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
       `}} />
     </div>

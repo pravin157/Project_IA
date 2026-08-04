@@ -15,7 +15,7 @@ import {
 export default function DiscountModulePage() {
   const [formData, setFormData] = useState({
     organizationName: '',
-    discountName: '',
+    discountName: '',   
     discountCode: '',
     discountPercentage: '',
     isRecurring: false

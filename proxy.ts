@@ -3,14 +3,14 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
 /**
- * Edge Middleware — protects:
+ * Proxy — protects:
  *   - /dashboard/*   → redirects to /login if unauthenticated
  *   - /api/admin/*   → returns 401 JSON if unauthenticated
  *
  * Verifies the `access_token` cookie using jose (Edge-compatible).
  * On success, attaches decoded user info to request headers for downstream use.
  */
-export default async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get('access_token')?.value;
 
