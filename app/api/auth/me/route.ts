@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getSessionUser } from '@/lib/auth';
-import pool, { initDb } from '@/utils/db';
+import { getSessionUser } from '@/server/auth/tokens';
+import pool, { initDb } from '@/server/database/pool';
 
 /**
  * GET /api/auth/me

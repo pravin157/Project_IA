@@ -1,5 +1,5 @@
 import React from 'react';
-import { PortfolioSummary, HealthBucketFilter } from '../types';
+import { PortfolioSummary, HealthBucketFilter } from '../shared/types/dashboard';
 import {
   Users,
   HeartPulse,

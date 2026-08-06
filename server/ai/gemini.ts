@@ -1,3 +1,4 @@
+// Server-only Gemini integration.
 import { GoogleGenAI } from '@google/genai';
 
 let aiClient: GoogleGenAI | null = null;

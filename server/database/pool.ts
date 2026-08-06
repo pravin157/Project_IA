@@ -1,10 +1,9 @@
+// Server-only PostgreSQL connection and schema bootstrap.
 import { Pool } from 'pg';
 
 function getCleanHost(host: string | undefined): string {
   if (!host) return 'localhost';
-  // Remove jdbc:postgresql:// or postgresql:// prefix if present
   let clean = host.replace(/^(jdbc:)?postgresql:\/\//i, '');
-  // Remove port and database suffix if present, e.g. 34.27.246.185:5432/AEC_USERS -> 34.27.246.185
   clean = clean.split('/')[0].split(':')[0];
   return clean;
 }

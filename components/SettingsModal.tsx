@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Settings, Key, Server, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
-import { fetchPortfolioAnalytics } from '../services/api';
+import { fetchPortfolioAnalytics } from '../client/api/customer-success';
 
 interface SettingsModalProps {
   isOpen: boolean;

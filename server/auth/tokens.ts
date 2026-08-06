@@ -1,3 +1,4 @@
+// Server-only JWT and cookie helpers.
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 
 // ──────────────────────────────────────────────

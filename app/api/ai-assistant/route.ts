@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateCsInsights } from '@/services/gemini';
+import { generateCsInsights } from '@/server/ai/gemini';
 
 export async function POST(request: Request) {
   try {

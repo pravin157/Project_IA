@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { AccountSummary, DashboardFilter, PaymasterOrganization } from '../types';
+import { AccountSummary, DashboardFilter, PaymasterOrganization } from '../shared/types/dashboard';
 import {
   formatRelativeTime,
   getSuggestedCsAction,
   healthToneClasses,
   moduleLabel,
-} from '../utils/cs';
+} from '../shared/customer-success/formatters';
 import {
   Search,
   ArrowUpDown,

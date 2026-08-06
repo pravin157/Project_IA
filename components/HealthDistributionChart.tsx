@@ -1,5 +1,5 @@
 import React from 'react';
-import { PortfolioSummary, DailyTrendItem } from '../types';
+import { PortfolioSummary, DailyTrendItem } from '../shared/types/dashboard';
 import {
   PieChart,
   Pie,

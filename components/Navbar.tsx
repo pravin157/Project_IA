@@ -8,7 +8,7 @@ import {
   MonitorPlay,
   LogOut,
 } from 'lucide-react';
-import { performCompleteLogout } from '@/utils/logout';
+import { performCompleteLogout } from '@/client/auth/logout';
 
 interface NavbarProps {
   searchQuery: string;

@@ -1,4 +1,4 @@
-import { AccountSummary } from '../types';
+import { AccountSummary } from '../types/dashboard';
 
 /** Product module display labels (AECAutopilot logSource keys). */
 export const MODULE_LABELS: Record<string, string> = {

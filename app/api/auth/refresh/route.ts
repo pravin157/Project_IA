@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import pool, { initDb } from '@/utils/db';
+import pool, { initDb } from '@/server/database/pool';
 import {
   verifyRefreshToken,
   signAccessToken,
@@ -10,9 +10,9 @@ import {
   ACCESS_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
   REFRESH_TOKEN_MAX_AGE,
-} from '@/lib/auth';
+} from '@/server/auth/tokens';
 import crypto from 'crypto';
-import { rateLimit, getClientIp } from '@/utils/rate-limit';
+import { rateLimit, getClientIp } from '@/server/security/rate-limit';
 
 /**
  * POST /api/auth/refresh

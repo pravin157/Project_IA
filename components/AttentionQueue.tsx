@@ -1,6 +1,6 @@
 import React from 'react';
-import { AccountSummary } from '../types';
-import { getSuggestedCsAction, healthToneClasses, moduleLabel } from '../utils/cs';
+import { AccountSummary } from '../shared/types/dashboard';
+import { getSuggestedCsAction, healthToneClasses, moduleLabel } from '../shared/customer-success/formatters';
 import { AlertTriangle, ChevronRight, ClipboardList, Flame } from 'lucide-react';
 
 interface AttentionQueueProps {

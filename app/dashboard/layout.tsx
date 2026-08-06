@@ -15,7 +15,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { performCompleteLogout } from '@/utils/logout';
+import { performCompleteLogout } from '@/client/auth/logout';
 
 // Define the menu structure
 type SubMenuItem = {
@@ -41,6 +41,10 @@ const menuItems: MenuItem[] = [
       {
         title: 'Discount Module',
         path: '/dashboard/sales/discount',
+      },
+      {
+        title: 'Coupons List',
+        path: '/dashboard/sales/coupons',
       }
     ]
   },
@@ -76,6 +80,7 @@ export default function DashboardLayout({
   // State for expanded menus
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     Customer: false,
+    Sales: true,
   });
 
   // State for mobile sidebar visibility
@@ -85,6 +90,9 @@ export default function DashboardLayout({
   useEffect(() => {
     if (pathname.includes('/dashboard/customer-success')) {
       setExpandedMenus((prev) => ({ ...prev, Customer: true }));
+    }
+    if (pathname.includes('/dashboard/sales')) {
+      setExpandedMenus((prev) => ({ ...prev, Sales: true }));
     }
   }, [pathname]);
 

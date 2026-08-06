@@ -1,5 +1,6 @@
 // Types for Customer Success Dashboard (AECAutopilot + Paymaster)
 
+// Types shared by client components and route handlers.
 export interface PaymasterOrganization {
   organizationId: string;
   organizationName?: string;

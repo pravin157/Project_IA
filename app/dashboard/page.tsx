@@ -8,7 +8,7 @@ import {
   LayoutGrid,
   ArrowRight
 } from 'lucide-react';
-import { performCompleteLogout } from '@/utils/logout';
+import { performCompleteLogout } from '@/client/auth/logout';
 
 export default function DashboardPortalPage() {
   const router = useRouter();
@@ -17,7 +17,6 @@ export default function DashboardPortalPage() {
   React.useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Check if the access token is valid via server-side verification
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
@@ -27,14 +26,12 @@ export default function DashboardPortalPage() {
           }
         }
 
-        // Access token expired — try to refresh
         const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
         if (refreshRes.ok) {
           setIsAuthenticated(true);
           return;
         }
 
-        // Both tokens invalid — redirect to login
         window.location.href = '/login';
       } catch {
         window.location.href = '/login';
@@ -55,9 +52,6 @@ export default function DashboardPortalPage() {
       </div>
     );
   }
-
-
-
 
   const dashboard = {
     id: 'customer-success',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModuleUsageSummaryItem } from '../types';
+import { ModuleUsageSummaryItem } from '../shared/types/dashboard';
 import { Layers } from 'lucide-react';
 
 interface ModuleAdoptionCardProps {

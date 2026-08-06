@@ -1,3 +1,4 @@
+// Browser-facing API client for Customer Success screens.
 import {
   ApiEnvelope,
   PortfolioAnalyticsBody,
@@ -6,8 +7,8 @@ import {
   PaymasterOrganization,
   ActivityLogItem,
   AutopilotAlertItem,
-} from '../types';
-import { toEpochMs } from '../utils/cs';
+} from '../../shared/types/dashboard';
+import { toEpochMs } from '../../shared/customer-success/formatters';
 
 const BASE_URL = '/api';
 

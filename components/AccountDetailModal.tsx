@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { AccountDetailBody, AccountSummary, ActivityLogItem } from '../types';
-import { fetchAccountDetail, fetchActivities } from '../services/api';
+import { AccountDetailBody, AccountSummary, ActivityLogItem } from '../shared/types/dashboard';
+import { fetchAccountDetail, fetchActivities } from '../client/api/customer-success';
 import {
   formatDate,
   formatRelativeTime,
@@ -8,7 +8,7 @@ import {
   healthToneClasses,
   moduleLabel,
   onboardingMilestoneLabel,
-} from '../utils/cs';
+} from '../shared/customer-success/formatters';
 import {
   X,
   HeartPulse,

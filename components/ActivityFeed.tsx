@@ -1,6 +1,6 @@
 import React from 'react';
-import { ActivityLogItem } from '../types';
-import { formatRelativeTime, moduleLabel } from '../utils/cs';
+import { ActivityLogItem } from '../shared/types/dashboard';
+import { formatRelativeTime, moduleLabel } from '../shared/customer-success/formatters';
 import { Activity, Clock, User, RefreshCw } from 'lucide-react';
 
 interface ActivityFeedProps {

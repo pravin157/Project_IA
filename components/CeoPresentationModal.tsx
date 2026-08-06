@@ -21,8 +21,8 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip,
   LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area,
 } from 'recharts';
-import { PortfolioAnalyticsBody, AccountSummary } from '../types';
-import { moduleLabel } from '../utils/cs';
+import { PortfolioAnalyticsBody, AccountSummary } from '../shared/types/dashboard';
+import { moduleLabel } from '../shared/customer-success/formatters';
 
 interface CeoPresentationProps {
   isOpen: boolean;
