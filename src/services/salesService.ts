@@ -4,6 +4,8 @@ import { extendSubscriptionApi, ExtendSubscriptionParams } from '@/api/sales/ext
 import { createDiscountApi, CreateDiscountParams } from '@/api/sales/createDiscount';
 import { getCouponsApi } from '@/api/sales/getCoupons';
 import { deleteCouponApi, DeleteCouponParams } from '@/api/sales/deleteCoupon';
+import { generateReceiptApi, GenerateReceiptParams } from '@/api/sales/generateReceipt';
+import { getPaymentGatewayDetailsApi, PaymentGatewayDetails } from '@/api/sales/getPaymentGatewayDetails';
 
 export const salesService = {
   async getOrganizations(): Promise<any[]> {
@@ -28,5 +30,15 @@ export const salesService = {
 
   async deleteCoupon(params: DeleteCouponParams): Promise<any> {
     return deleteCouponApi(params);
+  },
+
+  async generateReceipt(params: GenerateReceiptParams): Promise<any> {
+    return generateReceiptApi(params);
+  },
+
+  async getPaymentGatewayDetails(countryCode: string): Promise<PaymentGatewayDetails | null> {
+    return getPaymentGatewayDetailsApi(countryCode);
   }
 };
+
+

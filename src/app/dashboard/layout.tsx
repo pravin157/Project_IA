@@ -39,6 +39,10 @@ const menuItems: MenuItem[] = [
         path: '/dashboard/sales',
       },
       {
+        title: 'Receipt Generation',
+        path: '/dashboard/sales/receipt',
+      },
+      {
         title: 'Discount Module',
         path: '/dashboard/sales/discount',
       },

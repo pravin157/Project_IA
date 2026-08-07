@@ -9,6 +9,7 @@ export const ENDPOINTS = {
   SALES: {
     PAYMASTER: '/paymaster',
     PAYMASTER_ADMIN: '/paymaster-admin',
+    SESSION: '/session',
   },
   CUSTOMER_SUCCESS: {
     BATCH: '/portfolio-batch',
