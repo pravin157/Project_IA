@@ -41,8 +41,9 @@ export async function fetchPortfolioAnalytics(
   );
 
   const data = res.data as any;
-  if (data && Array.isArray(data.accounts)) {
-    return normalizePortfolio(data);
+  const portfolio = data?.data || data;
+  if (portfolio && Array.isArray(portfolio.accounts)) {
+    return normalizePortfolio(portfolio);
   }
   return null;
 }
