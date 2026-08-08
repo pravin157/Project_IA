@@ -10,7 +10,6 @@ export async function getOrganizationByAccountIdApi(accountId: string): Promise<
   const response = await apiClient.post(ENDPOINTS.SALES.SESSION, {
     eventType: 'GET_ORGANIZATION_BY_ACCOUNT_ID',
     accountId: accountId,
-    aecId: accountId,
   });
 
   return response.data;

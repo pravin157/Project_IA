@@ -6,6 +6,7 @@ import { getCouponsApi } from '@/api/sales/getCoupons';
 import { deleteCouponApi, DeleteCouponParams } from '@/api/sales/deleteCoupon';
 import { generateReceiptApi, GenerateReceiptParams } from '@/api/sales/generateReceipt';
 import { getPaymentGatewayDetailsApi, PaymentGatewayDetails } from '@/api/sales/getPaymentGatewayDetails';
+import { getOrganizationByAccountIdApi } from '@/api/sales/getOrganizationByAccountId';
 
 export const salesService = {
   async getOrganizations(): Promise<any[]> {
@@ -38,6 +39,10 @@ export const salesService = {
 
   async getPaymentGatewayDetails(countryCode: string): Promise<PaymentGatewayDetails | null> {
     return getPaymentGatewayDetailsApi(countryCode);
+  },
+
+  async getOrganizationByAccountId(accountId: string): Promise<any> {
+    return getOrganizationByAccountIdApi(accountId);
   }
 };
 
