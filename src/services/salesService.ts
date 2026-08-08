@@ -7,6 +7,7 @@ import { deleteCouponApi, DeleteCouponParams } from '@/api/sales/deleteCoupon';
 import { generateReceiptApi, GenerateReceiptParams } from '@/api/sales/generateReceipt';
 import { getPaymentGatewayDetailsApi, PaymentGatewayDetails } from '@/api/sales/getPaymentGatewayDetails';
 import { getOrganizationByAccountIdApi } from '@/api/sales/getOrganizationByAccountId';
+import { createManualReceiptApi, CreateManualReceiptParams } from '@/api/sales/createManualReceipt';
 
 export const salesService = {
   async getOrganizations(): Promise<any[]> {
@@ -43,6 +44,10 @@ export const salesService = {
 
   async getOrganizationByAccountId(accountId: string): Promise<any> {
     return getOrganizationByAccountIdApi(accountId);
+  },
+
+  async createManualReceipt(params: CreateManualReceiptParams): Promise<any> {
+    return createManualReceiptApi(params);
   }
 };
 
