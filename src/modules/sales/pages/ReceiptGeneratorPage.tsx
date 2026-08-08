@@ -83,6 +83,49 @@ export default function ReceiptGeneratorPage() {
   const [receiptHistory, setReceiptHistory] = useState<ReceiptData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Organization verification states
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [isLoadingOrg, setIsLoadingOrg] = useState(false);
+  const [orgError, setOrgError] = useState<string | null>(null);
+  const [orgSuccess, setOrgSuccess] = useState(false);
+
+  const handleVerifyOrganization = async (accountIdToVerify?: string) => {
+    const targetId = accountIdToVerify || formData.aecId;
+    if (!targetId.trim()) {
+      setOrgError('Please enter an AEC ID first.');
+      return;
+    }
+
+    setIsLoadingOrg(true);
+    setOrgError(null);
+    setOrgSuccess(false);
+    setOrganizations([]);
+
+    try {
+      const response = await salesService.getOrganizationByAccountId(targetId.trim());
+      
+      // Handle response structures
+      if (response && response.status === 200 && response.body) {
+        setOrganizations([response.body]);
+        setOrgSuccess(true);
+      } else if (response && response.body) {
+        setOrganizations([response.body]);
+        setOrgSuccess(true);
+      } else if (response && response.organizationId) {
+        setOrganizations([response]);
+        setOrgSuccess(true);
+      } else {
+        // Empty response
+        setOrgError('No organization details found for the provided AEC ID.');
+      }
+    } catch (err: any) {
+      console.error('Error verifying organization:', err);
+      setOrgError(err.message || 'Network error: Failed to reach the organization service.');
+    } finally {
+      setIsLoadingOrg(false);
+    }
+  };
+
   // Fetch Payment Gateway & Currency details whenever countryCode (2 chars) changes
   useEffect(() => {
     if (formData.countryCode.length === 2) {
@@ -175,6 +218,12 @@ export default function ReceiptGeneratorPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    if (name === 'aecId') {
+      setOrganizations([]);
+      setOrgSuccess(false);
+      setOrgError(null);
+    }
 
     if (name === 'countryCode') {
       // Restrict strictly to 2 characters uppercase
@@ -321,15 +370,58 @@ export default function ReceiptGeneratorPage() {
                   <Building2 className="w-4 h-4 text-sky-400" />
                   AEC ID
                 </label>
-                <input
-                  type="text"
-                  name="aecId"
-                  value={formData.aecId}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. AEC-ORG-1092"
-                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-600 font-mono"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="aecId"
+                    value={formData.aecId}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. AEC-ORG-1092"
+                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-600 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleVerifyOrganization()}
+                    disabled={isLoadingOrg || !formData.aecId.trim()}
+                    className="px-4 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-xs font-semibold text-white rounded-xl transition-all flex items-center gap-1.5 shrink-0 border border-slate-700"
+                  >
+                    {isLoadingOrg ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-400" />
+                    ) : (
+                      <Search className="w-3.5 h-3.5 text-sky-400" />
+                    )}
+                    Verify
+                  </button>
+                </div>
+
+                {/* Status messages for Organization API */}
+                {isLoadingOrg && (
+                  <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5 animate-fade-in">
+                    <Loader2 className="w-3 h-3 animate-spin text-sky-400" />
+                    Verifying organization ID...
+                  </p>
+                )}
+
+                {orgError && (
+                  <p className="text-[11px] text-rose-400 mt-1.5 flex items-center gap-1.5 animate-fade-in">
+                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                    {orgError}
+                  </p>
+                )}
+
+                {orgSuccess && organizations.length > 0 && (
+                  <div className="mt-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1 animate-fade-in">
+                    <p className="text-[11px] text-emerald-400 flex items-center gap-1.5 font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      Organization Verified
+                    </p>
+                    <div className="text-[10px] text-slate-400 font-mono space-y-0.5">
+                      <div>Account ID: <span className="text-slate-200">{organizations[0]?.accountId}</span></div>
+                      <div>Org ID: <span className="text-slate-200">{organizations[0]?.organizationId}</span></div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 2. Date and Time */}
