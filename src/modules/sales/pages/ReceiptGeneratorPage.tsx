@@ -85,6 +85,7 @@ export default function ReceiptGeneratorPage() {
 
   // Organization verification states
   const [organizations, setOrganizations] = useState<any[]>([]);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState("");
   const [isLoadingOrg, setIsLoadingOrg] = useState(false);
   const [orgError, setOrgError] = useState<string | null>(null);
   const [orgSuccess, setOrgSuccess] = useState(false);
@@ -100,19 +101,25 @@ export default function ReceiptGeneratorPage() {
     setOrgError(null);
     setOrgSuccess(false);
     setOrganizations([]);
+    setSelectedOrganizationId('');
 
     try {
       const response = await salesService.getOrganizationByAccountId(targetId.trim());
       
       // Handle response structures
       if (response && response.status === 200 && response.body) {
-        setOrganizations([response.body]);
+        const org = response.body;
+        setOrganizations([org]);
+        setSelectedOrganizationId(org.organizationId || '');
         setOrgSuccess(true);
       } else if (response && response.body) {
-        setOrganizations([response.body]);
+        const org = response.body;
+        setOrganizations([org]);
+        setSelectedOrganizationId(org.organizationId || '');
         setOrgSuccess(true);
       } else if (response && response.organizationId) {
         setOrganizations([response]);
+        setSelectedOrganizationId(response.organizationId || '');
         setOrgSuccess(true);
       } else {
         // Empty response
@@ -223,6 +230,7 @@ export default function ReceiptGeneratorPage() {
       setOrganizations([]);
       setOrgSuccess(false);
       setOrgError(null);
+      setSelectedOrganizationId('');
     }
 
     if (name === 'countryCode') {
@@ -237,27 +245,70 @@ export default function ReceiptGeneratorPage() {
     setError(null);
   };
 
+  // Helper to format date-time string to "DD-MM-YYYY HH:mm:ss" format
+  const formatPaidOn = (dateTimeStr: string) => {
+    if (!dateTimeStr) return '';
+    try {
+      const date = new Date(dateTimeStr);
+      if (isNaN(date.getTime())) return dateTimeStr;
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    } catch {
+      return dateTimeStr;
+    }
+  };
+
+  const mapDuration = (duration: string) => {
+    switch (duration) {
+      case 'Annually':
+        return 'ANNUAL';
+      case 'Monthly':
+        return 'MONTHLY';
+      case 'Quarterly':
+        return 'QUARTERLY';
+      case 'Half Yearly':
+        return 'HALF_YEARLY';
+      default:
+        return duration.toUpperCase();
+    }
+  };
+
+  const mapPlanName = (planName: string) => {
+    return planName.toUpperCase().replace(/\s+/g, '_');
+  };
+
   const handleGenerateReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setIsSuccess(false);
     setError(null);
 
-    // Validation checks
-    if (!formData.aecId.trim()) {
-      setError('AEC ID is required.');
+    // Validation checks as required by Prompt
+    if (!selectedOrganizationId) {
+      setError('Organization is not selected. Please enter a valid AEC ID and click Verify first.');
       setIsSubmitting(false);
       return;
     }
 
-    if (formData.countryCode.length !== 2) {
-      setError('Country code must be exactly 2 characters (e.g. US, IN, GB).');
+    if (!formData.dateTime) {
+      setError('Payment date and time is required.');
       setIsSubmitting(false);
       return;
     }
 
     if (!formData.amount || Number(formData.amount) <= 0) {
-      setError('Please enter a valid amount greater than 0.');
+      setError('Please enter a valid amount Paid greater than 0.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.duration) {
+      setError('Duration is required.');
       setIsSubmitting(false);
       return;
     }
@@ -268,29 +319,56 @@ export default function ReceiptGeneratorPage() {
       return;
     }
 
-    const newReceiptId = `REC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+    if (formData.countryCode.length !== 2) {
+      setError('Country code must be exactly 2 characters (e.g. US, IN, GB).');
+      setIsSubmitting(false);
+      return;
+    }
 
-    const payload = {
-      aecId: formData.aecId.trim(),
-      dateTime: formData.dateTime,
-      amount: Number(formData.amount),
-      duration: formData.duration,
-      numberOfUsers: Number(formData.numberOfUsers),
-      countryCode: formData.countryCode.toUpperCase(),
-      planName: formData.planName
+    if (!formData.planName) {
+      setError('Plan name is required.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!formData.aecId.trim()) {
+      setError('AEC ID (AEC Number) is required.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const receiptData = {
+      eventType: 'CREATE_MANUAL_RECEIPT',
+      organizationId: selectedOrganizationId,
+      paidOn: formatPaidOn(formData.dateTime),
+      amountPaid: Number(formData.amount),
+      duration: mapDuration(formData.duration),
+      numUsers: Number(formData.numberOfUsers),
+      country: formData.countryCode.toUpperCase(),
+      planName: mapPlanName(formData.planName),
+      aecNumber: formData.aecId.trim()
     };
 
     try {
-      // Try backend service call if available
-      try {
-        await salesService.generateReceipt(payload);
-      } catch (apiErr) {
-        console.warn('API sync warning (continuing with local receipt creation):', apiErr);
-      }
+      // Call CREATE_MANUAL_RECEIPT API
+      const response = await salesService.createManualReceipt(receiptData);
+      
+      // Extract generated receipt ID if available, otherwise generate fallback
+      const newReceiptId = response?.receiptNumber || 
+                           response?.receiptId || 
+                           response?.body?.receiptNumber || 
+                           response?.body?.receiptId || 
+                           `REC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
 
       const newReceipt: ReceiptData = {
         id: newReceiptId,
-        ...payload,
+        aecId: formData.aecId.trim(),
+        dateTime: formData.dateTime,
+        amount: Number(formData.amount),
+        duration: formData.duration,
+        numberOfUsers: Number(formData.numberOfUsers),
+        countryCode: formData.countryCode.toUpperCase(),
+        planName: formData.planName,
         currencySymbol,
         currencyCode,
         createdAt: new Date().toISOString()
@@ -304,8 +382,8 @@ export default function ReceiptGeneratorPage() {
         setIsSuccess(false);
       }, 5000);
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Failed to generate receipt.');
+      console.error('Error generating manual receipt:', err);
+      setError(err.message || 'Failed to generate manual receipt via the Admin API.');
     } finally {
       setIsSubmitting(false);
     }
@@ -411,14 +489,36 @@ export default function ReceiptGeneratorPage() {
                 )}
 
                 {orgSuccess && organizations.length > 0 && (
-                  <div className="mt-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1 animate-fade-in">
-                    <p className="text-[11px] text-emerald-400 flex items-center gap-1.5 font-semibold">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      Organization Verified
-                    </p>
-                    <div className="text-[10px] text-slate-400 font-mono space-y-0.5">
-                      <div>Account ID: <span className="text-slate-200">{organizations[0]?.accountId}</span></div>
-                      <div>Org ID: <span className="text-slate-200">{organizations[0]?.organizationId}</span></div>
+                  <div className="mt-3 space-y-2.5 animate-fade-in">
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1">
+                      <p className="text-[11px] text-emerald-400 flex items-center gap-1.5 font-semibold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        Organization Verified
+                      </p>
+                      <div className="text-[10px] text-slate-400 font-mono space-y-0.5">
+                        <div>Account ID: <span className="text-slate-200">{organizations[0]?.accountId}</span></div>
+                        <div>Org ID: <span className="text-slate-200">{organizations[0]?.organizationId}</span></div>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 bg-[#080d15] border border-slate-700/80 rounded-xl space-y-2 shadow-inner">
+                      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-sky-400" />
+                        Select Organization for Receipt
+                      </label>
+                      <select
+                        value={selectedOrganizationId}
+                        onChange={(e) => setSelectedOrganizationId(e.target.value)}
+                        required
+                        className="w-full bg-[#0b1120] border border-slate-700/80 text-white text-xs rounded-lg px-3 py-2.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-mono cursor-pointer"
+                      >
+                        <option value="" disabled>-- Select Organization --</option>
+                        {organizations.map((org) => (
+                          <option key={org.organizationId} value={org.organizationId}>
+                            {org.organizationId} (Account: {org.accountId})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 )}
