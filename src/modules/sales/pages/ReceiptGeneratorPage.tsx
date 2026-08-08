@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileText,
   Building2,
@@ -10,8 +10,6 @@ import {
   Users,
   Globe,
   Layers,
-  Printer,
-  Download,
   CheckCircle2,
   AlertCircle,
   Plus,
@@ -53,8 +51,6 @@ const DURATION_OPTIONS = [
 ];
 
 export default function ReceiptGeneratorPage() {
-  const printRef = useRef<HTMLDivElement>(null);
-
   // Get current local date and time formatted for datetime-local input
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -86,7 +82,6 @@ export default function ReceiptGeneratorPage() {
   const [error, setError] = useState<string | null>(null);
   const [receiptHistory, setReceiptHistory] = useState<ReceiptData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [generatedReceiptNumber, setGeneratedReceiptNumber] = useState<string>('REC-2026-88102');
 
   // Fetch Payment Gateway & Currency details whenever countryCode (2 chars) changes
   useEffect(() => {
@@ -225,7 +220,6 @@ export default function ReceiptGeneratorPage() {
     }
 
     const newReceiptId = `REC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-    setGeneratedReceiptNumber(newReceiptId);
 
     const payload = {
       aecId: formData.aecId.trim(),
@@ -268,10 +262,6 @@ export default function ReceiptGeneratorPage() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleDeleteHistoryItem = (id: string) => {
     const updated = receiptHistory.filter(item => item.id !== id);
     saveHistory(updated);
@@ -288,7 +278,7 @@ export default function ReceiptGeneratorPage() {
     <div className="w-full h-full p-4 sm:p-6 lg:p-10 overflow-y-auto">
 
       {/* Header Section */}
-      <div className="max-w-6xl mx-auto mb-8">
+      <div className="max-w-5xl mx-auto mb-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase mb-3"
@@ -303,376 +293,235 @@ export default function ReceiptGeneratorPage() {
               </span>
             </h1>
             <p className="text-slate-400 text-sm sm:text-base">
-              Generate, preview, print, and archive official payment receipts with automatic currency symbol detection.
+              Generate and archive official payment receipts with automatic currency symbol detection.
             </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handlePrint}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs sm:text-sm flex items-center gap-2 border border-slate-700/60 transition-all shadow-md hover:text-white"
-            >
-              <Printer className="w-4 h-4 text-sky-400" />
-              Print / Save PDF
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Container */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+      {/* Form Container */}
+      <div className="max-w-5xl mx-auto mb-12">
+        <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-sky-500/10 blur-3xl rounded-full pointer-events-none" />
 
-        {/* Input Form Column (7 Cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-sky-500/10 blur-3xl rounded-full pointer-events-none" />
+          <div className="flex items-center justify-between pb-6 border-b border-slate-800/80 mb-6">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-sky-400" />
+              Receipt Details Form
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">All fields required</span>
+          </div>
 
-            <div className="flex items-center justify-between pb-6 border-b border-slate-800/80 mb-6">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-sky-400" />
-                Receipt Details Form
-              </h2>
-              <span className="text-xs text-slate-500 font-medium">All fields required</span>
-            </div>
+          <form onSubmit={handleGenerateReceipt} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-            <form onSubmit={handleGenerateReceipt} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-                {/* 1. AEC ID */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-sky-400" />
-                    AEC ID
-                  </label>
-                  <input
-                    type="text"
-                    name="aecId"
-                    value={formData.aecId}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. AEC-ORG-1092"
-                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-600 font-mono"
-                  />
-                </div>
-
-                {/* 2. Date and Time */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-purple-400" />
-                    Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    name="dateTime"
-                    value={formData.dateTime}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all text-slate-200"
-                  />
-                </div>
-
-                {/* 3. Country Code (strictly 2 characters) */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-rose-400" />
-                      Country Code
-                    </label>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase">2 Chars Only</span>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="countryCode"
-                      value={formData.countryCode}
-                      onChange={handleChange}
-                      required
-                      maxLength={2}
-                      placeholder="US"
-                      className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all uppercase tracking-widest font-mono placeholder:text-slate-600"
-                    />
-                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                      {isLoadingGateway ? (
-                        <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
-                      ) : formData.countryCode.length === 2 ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          {formData.countryCode}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-amber-400 font-semibold">2 chars</span>
-                      )}
-                    </div>
-                  </div>
-                  {countryName && (
-                    <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                      <span>Detected Country:</span>
-                      <strong className="text-slate-200">{countryName}</strong>
-                    </p>
-                  )}
-                </div>
-
-                {/* 4. Amount with Dynamic Currency Symbol */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-emerald-400" />
-                      Amount ({currencySymbol})
-                    </label>
-                    <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                      {currencyCode} ({currencySymbol})
-                    </span>
-                  </div>
-                  <div className="w-full bg-[#080d15] border border-slate-700/80 rounded-xl px-4 py-3 flex items-center gap-2.5 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
-                    <span className="text-emerald-400 font-bold text-sm shrink-0 select-none font-mono">
-                      {currencySymbol}
-                    </span>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      required
-                      min="0"
-                      step="0.01"
-                      placeholder="e.g. 2499.00"
-                      className="w-full bg-transparent text-white text-sm outline-none placeholder:text-slate-600 font-mono p-0 m-0 border-none focus:outline-none focus:ring-0"
-                    />
-                  </div>
-                </div>
-
-                {/* 5. Duration Dropdown */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-400" />
-                    Duration
-                  </label>
-                  <select
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all cursor-pointer"
-                  >
-                    {DURATION_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt} className="bg-[#0b1120] text-white">
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 6. Number of Users */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-indigo-400" />
-                    Number of Users
-                  </label>
-                  <input
-                    type="number"
-                    name="numberOfUsers"
-                    value={formData.numberOfUsers}
-                    onChange={handleChange}
-                    required
-                    min="1"
-                    placeholder="e.g. 10"
-                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600 font-mono"
-                  />
-                </div>
-
-              </div>
-
-              {/* 7. Plan Name Dropdown */}
+              {/* 1. AEC ID */}
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-teal-400" />
-                  Plan Name
+                  <Building2 className="w-4 h-4 text-sky-400" />
+                  AEC ID
                 </label>
-                <select
-                  name="planName"
-                  value={formData.planName}
+                <input
+                  type="text"
+                  name="aecId"
+                  value={formData.aecId}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all cursor-pointer font-medium"
+                  placeholder="e.g. AEC-ORG-1092"
+                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-600 font-mono"
+                />
+              </div>
+
+              {/* 2. Date and Time */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-purple-400" />
+                  Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  name="dateTime"
+                  value={formData.dateTime}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all text-slate-200"
+                />
+              </div>
+
+              {/* 3. Country Code (strictly 2 characters) */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-rose-400" />
+                    Country Code
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">2 Chars Only</span>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="countryCode"
+                    value={formData.countryCode}
+                    onChange={handleChange}
+                    required
+                    maxLength={2}
+                    placeholder="US"
+                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all uppercase tracking-widest font-mono placeholder:text-slate-600"
+                  />
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    {isLoadingGateway ? (
+                      <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
+                    ) : formData.countryCode.length === 2 ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        {formData.countryCode}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-amber-400 font-semibold">2 chars</span>
+                    )}
+                  </div>
+                </div>
+                {countryName && (
+                  <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                    <span>Detected Country:</span>
+                    <strong className="text-slate-200">{countryName}</strong>
+                  </p>
+                )}
+              </div>
+
+              {/* 4. Amount with Dynamic Currency Symbol */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-emerald-400" />
+                    Amount ({currencySymbol})
+                  </label>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                    {currencyCode} ({currencySymbol})
+                  </span>
+                </div>
+                <div className="w-full bg-[#080d15] border border-slate-700/80 rounded-xl px-4 py-3 flex items-center gap-2.5 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
+                  <span className="text-emerald-400 font-bold text-sm shrink-0 select-none font-mono">
+                    {currencySymbol}
+                  </span>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 2499.00"
+                    className="w-full bg-transparent text-white text-sm outline-none placeholder:text-slate-600 font-mono p-0 m-0 border-none focus:outline-none focus:ring-0"
+                  />
+                </div>
+              </div>
+
+              {/* 5. Duration Dropdown */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  Duration
+                </label>
+                <select
+                  name="duration"
+                  value={formData.duration}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all cursor-pointer"
                 >
-                  {DEFAULT_PLANS.map((plan) => (
-                    <option key={plan} value={plan} className="bg-[#0b1120] text-white">
-                      {plan}
+                  {DURATION_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt} className="bg-[#0b1120] text-white">
+                      {opt}
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-                  Select subscriber entitlement plan. Default is <span className="text-teal-300 font-semibold">All in One Plan</span>.
-                </p>
               </div>
 
-              {/* Submit & Error display */}
-              <div className="pt-4 border-t border-slate-800/80 space-y-4">
-                {error && (
-                  <div className="w-full p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex gap-2 items-center">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                {isSuccess ? (
-                  <div className="w-full py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2">
-                    <CheckCircle2 className="w-5 h-5" />
-                    Receipt Generated & Saved to History!
-                  </div>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-400 hover:to-teal-400 active:scale-[0.98] text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        Generate & Save Receipt
-                        <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
-                )}
+              {/* 6. Number of Users */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-indigo-400" />
+                  Number of Users
+                </label>
+                <input
+                  type="number"
+                  name="numberOfUsers"
+                  value={formData.numberOfUsers}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  placeholder="e.g. 10"
+                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600 font-mono"
+                />
               </div>
 
-            </form>
-          </div>
-        </div>
-
-        {/* Live Receipt Card Preview Column (5 Cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-2xl relative">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-sky-400" />
-                Live Printable Receipt Card
-              </span>
-              <span className="text-[10px] bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded border border-sky-500/20 font-semibold">
-                Dynamic Preview
-              </span>
             </div>
 
-            {/* Print Container with printable styles */}
-            <div 
-              ref={printRef}
-              className="printable-receipt bg-gradient-to-b from-slate-900 to-[#080d15] border border-slate-700/60 rounded-xl p-6 text-slate-200 shadow-xl relative overflow-hidden"
-            >
-              {/* Receipt Header */}
-              <div className="flex items-start justify-between border-b border-slate-800 pb-5 mb-5">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 rounded bg-gradient-to-br from-sky-500 to-teal-500 flex items-center justify-center text-white font-bold text-xs">
-                      IA
-                    </div>
-                    <h3 className="font-extrabold text-white text-base tracking-tight">IntoAEC Inc.</h3>
-                  </div>
-                  <p className="text-[11px] text-slate-400">Official Subscription Receipt</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-mono uppercase text-slate-500 block mb-0.5">Receipt No</span>
-                  <span className="text-xs font-bold font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
-                    {generatedReceiptNumber}
-                  </span>
-                </div>
-              </div>
-
-              {/* Receipt Grid Details */}
-              <div className="grid grid-cols-2 gap-4 mb-6 text-xs">
-                <div>
-                  <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">AEC ID</span>
-                  <span className="text-white font-mono font-semibold">
-                    {formData.aecId || '—'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">Country & Currency</span>
-                  <span className="inline-flex items-center gap-1.5 text-white font-mono font-semibold">
-                    {formData.countryCode ? (
-                      <>
-                        <span className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px]">
-                          {formData.countryCode}
-                        </span>
-                        <span className="text-emerald-400 text-xs font-bold">
-                          {currencySymbol} ({currencyCode})
-                        </span>
-                      </>
-                    ) : '—'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">Date & Time</span>
-                  <span className="text-slate-300 font-mono text-[11px]">
-                    {formData.dateTime ? new Date(formData.dateTime).toLocaleString() : '—'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 text-[10px] uppercase font-bold block mb-1">Users / Seats</span>
-                  <span className="text-slate-300 font-semibold">
-                    {formData.numberOfUsers ? `${formData.numberOfUsers} Users` : '—'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Plan & Billing Section */}
-              <div className="bg-[#080d15] border border-slate-800 rounded-lg p-4 mb-6 space-y-3">
-                <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-800">
-                  <span className="text-slate-400">Selected Plan</span>
-                  <span className="text-teal-400 font-bold bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
-                    {formData.planName}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Billing Duration</span>
-                  <span className="text-amber-400 font-semibold">{formData.duration}</span>
-                </div>
-              </div>
-
-              {/* Total Amount Summary with Dynamic Currency Symbol */}
-              <div className="border-t border-slate-800 pt-4 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Total Billed</span>
-                  <span className="text-xs text-emerald-400 font-semibold">Paid in Full ({currencyCode})</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-black font-mono text-white tracking-tight">
-                    {currencySymbol}{formData.amount ? Number(formData.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Footer Note */}
-              <div className="mt-6 pt-4 border-t border-slate-800/60 text-center">
-                <p className="text-[10px] text-slate-500">
-                  Thank you for subscribing to IntoAEC. For queries, contact billing@intoaec.ai
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Card Action */}
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={handlePrint}
-                className="flex-1 py-2.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+            {/* 7. Plan Name Dropdown */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-teal-400" />
+                Plan Name
+              </label>
+              <select
+                name="planName"
+                value={formData.planName}
+                onChange={handleChange}
+                required
+                className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all cursor-pointer font-medium"
               >
-                <Printer className="w-4 h-4" />
-                Print Preview
-              </button>
+                {DEFAULT_PLANS.map((plan) => (
+                  <option key={plan} value={plan} className="bg-[#0b1120] text-white">
+                    {plan}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                Select subscriber entitlement plan. Default is <span className="text-teal-300 font-semibold">All in One Plan</span>.
+              </p>
             </div>
-          </div>
-        </div>
 
+            {/* Submit & Error display */}
+            <div className="pt-4 border-t border-slate-800/80 space-y-4">
+              {error && (
+                <div className="w-full p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex gap-2 items-center">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {isSuccess ? (
+                <div className="w-full py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                  Receipt Generated & Saved to History!
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-400 hover:to-teal-400 active:scale-[0.98] text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Generate & Save Receipt
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+          </form>
+        </div>
       </div>
 
       {/* Generated Receipt History Table */}
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-2xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -768,31 +617,7 @@ export default function ReceiptGeneratorPage() {
         </div>
       </div>
 
-      {/* Print Stylesheet injection for clean receipt printing */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .printable-receipt, .printable-receipt * {
-            visibility: visible;
-          }
-          .printable-receipt {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            background: #ffffff !important;
-            color: #000000 !important;
-            border: 1px solid #cccccc !important;
-          }
-          .printable-receipt h3, .printable-receipt span, .printable-receipt p, .printable-receipt div {
-            color: #000000 !important;
-          }
-        }
-      `}} />
-
     </div>
   );
 }
+
