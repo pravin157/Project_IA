@@ -106,25 +106,28 @@ export default function ReceiptGeneratorPage() {
     try {
       const response = await salesService.getOrganizationByAccountId(targetId.trim());
       
-      // Handle response structures
-      if (response && response.status === 200 && response.body) {
-        const org = response.body;
-        setOrganizations([org]);
-        setSelectedOrganizationId(org.organizationId || '');
-        setOrgSuccess(true);
-      } else if (response && response.body) {
-        const org = response.body;
-        setOrganizations([org]);
-        setSelectedOrganizationId(org.organizationId || '');
-        setOrgSuccess(true);
-      } else if (response && response.organizationId) {
-        setOrganizations([response]);
-        setSelectedOrganizationId(response.organizationId || '');
-        setOrgSuccess(true);
-      } else {
-        // Empty response
-        setOrgError('No organization details found for the provided AEC ID.');
+      if (!response) {
+        setOrgError('Organization API failure: No response received from server.');
+        return;
       }
+
+      let org = null;
+      if (response.status === 200 && response.body) {
+        org = response.body;
+      } else if (response.body) {
+        org = response.body;
+      } else if (response.organizationId) {
+        org = response;
+      }
+
+      if (!org || !org.organizationId) {
+        setOrgError('Empty organization response: No valid organization details or organizationId found.');
+        return;
+      }
+
+      setOrganizations([org]);
+      setSelectedOrganizationId(org.organizationId);
+      setOrgSuccess(true);
     } catch (err: any) {
       console.error('Error verifying organization:', err);
       setOrgError(err.message || 'Network error: Failed to reach the organization service.');
@@ -290,7 +293,7 @@ export default function ReceiptGeneratorPage() {
 
     // Validation checks as required by Prompt
     if (!selectedOrganizationId) {
-      setError('Organization is not selected. Please enter a valid AEC ID and click Verify first.');
+      setError('Organization selection missing. Please select an organization first.');
       setIsSubmitting(false);
       return;
     }
@@ -338,7 +341,6 @@ export default function ReceiptGeneratorPage() {
     }
 
     const receiptData = {
-      eventType: 'CREATE_MANUAL_RECEIPT',
       organizationId: selectedOrganizationId,
       paidOn: formatPaidOn(formData.dateTime),
       amountPaid: Number(formData.amount),
@@ -353,15 +355,20 @@ export default function ReceiptGeneratorPage() {
       // Call CREATE_MANUAL_RECEIPT API
       const response = await salesService.createManualReceipt(receiptData);
       
-      // Extract generated receipt ID if available, otherwise generate fallback
-      const newReceiptId = response?.receiptNumber || 
-                           response?.receiptId || 
-                           response?.body?.receiptNumber || 
-                           response?.body?.receiptId || 
-                           `REC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+      if (!response) {
+        throw new Error('Invalid receipt API response: No response received.');
+      }
+      
+      // Extract generated receipt ID if available, otherwise throw error
+      if (!response.body || !response.body.receiptId) {
+        throw new Error('Invalid receipt API response: Missing response.body.receiptId.');
+      }
+      
+      const receiptId = response.body.receiptId;
+      const receiptUrl = `https://app.aecplayhouse.com/subscription/receipt?receiptId=${receiptId}`;
 
       const newReceipt: ReceiptData = {
-        id: newReceiptId,
+        id: receiptId,
         aecId: formData.aecId.trim(),
         dateTime: formData.dateTime,
         amount: Number(formData.amount),
@@ -378,6 +385,10 @@ export default function ReceiptGeneratorPage() {
       saveHistory(updatedHistory);
 
       setIsSuccess(true);
+      
+      // Open the receipt URL in a new browser tab
+      window.open(receiptUrl, "_blank");
+
       setTimeout(() => {
         setIsSuccess(false);
       }, 5000);
@@ -760,7 +771,14 @@ export default function ReceiptGeneratorPage() {
                   filteredHistory.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
                       <td className="py-3.5 px-4 font-mono font-bold text-sky-400">
-                        {item.id}
+                        <a 
+                          href={`https://app.aecplayhouse.com/subscription/receipt?receiptId=${item.id}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:underline hover:text-sky-300"
+                        >
+                          {item.id}
+                        </a>
                       </td>
                       <td className="py-3.5 px-4 font-mono text-white font-medium">
                         {item.aecId}
