@@ -6,7 +6,13 @@ const PAYMASTER_APIKEY = process.env.AECAUTOPILOT_APIKEY || 'tR4hTjS954LxUWtRM72
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const adminUrl = `${PAYMASTER_ENDPOINT.replace(/\/+$/, '')}/admin-apis`;
+    
+    const isReceiptEvent = body.eventType === 'CREATE_MANUAL_RECEIPT' || body.eventType === 'GENERATE_RECEIPT';
+    const baseEndpoint = isReceiptEvent
+      ? (process.env.PAYMASTER_LOCAL_ENDPOINT || 'http://localhost:9097')
+      : PAYMASTER_ENDPOINT;
+
+    const adminUrl = `${baseEndpoint.replace(/\/+$/, '')}/admin-apis`;
 
     const response = await fetch(adminUrl, {
       method: 'POST',

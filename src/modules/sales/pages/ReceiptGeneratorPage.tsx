@@ -184,7 +184,7 @@ export default function ReceiptGeneratorPage() {
         const initialSample: ReceiptData[] = [
           {
             id: 'REC-2026-88101',
-            aecId: 'AEC-ORG-9042',
+            aecId: 'AEC-3078',
             dateTime: '2026-08-07T10:30',
             amount: 4999.00,
             duration: 'Annually',
@@ -197,7 +197,7 @@ export default function ReceiptGeneratorPage() {
           },
           {
             id: 'REC-2026-88095',
-            aecId: 'AEC-ORG-7712',
+            aecId: 'AEC-3104',
             dateTime: '2026-08-06T14:15',
             amount: 149999.00,
             duration: 'Quarterly',
@@ -340,6 +340,8 @@ export default function ReceiptGeneratorPage() {
       return;
     }
 
+    const selectedOrg = organizations.find(org => org.organizationId === selectedOrganizationId);
+
     const receiptData = {
       organizationId: selectedOrganizationId,
       paidOn: formatPaidOn(formData.dateTime),
@@ -348,19 +350,26 @@ export default function ReceiptGeneratorPage() {
       numUsers: Number(formData.numberOfUsers),
       country: formData.countryCode.toUpperCase(),
       planName: mapPlanName(formData.planName),
-      aecNumber: formData.aecId.trim()
+      aecNumber: formData.aecId.trim(),
+      name: selectedOrg?.organizationName || '',
+      email: selectedOrg?.emailAddress || ''
     };
+
+    // Open a blank tab synchronously to prevent popup blocker
+    const receiptTab = typeof window !== 'undefined' ? window.open('about:blank', '_blank') : null;
 
     try {
       // Call CREATE_MANUAL_RECEIPT API
       const response = await salesService.createManualReceipt(receiptData);
       
       if (!response) {
+        if (receiptTab) receiptTab.close();
         throw new Error('Invalid receipt API response: No response received.');
       }
       
       // Extract generated receipt ID if available, otherwise throw error
       if (!response.body || !response.body.receiptId) {
+        if (receiptTab) receiptTab.close();
         throw new Error('Invalid receipt API response: Missing response.body.receiptId.');
       }
       
@@ -386,13 +395,19 @@ export default function ReceiptGeneratorPage() {
 
       setIsSuccess(true);
       
-      // Open the receipt URL in a new browser tab
-      window.open(receiptUrl, "_blank");
+      // Navigate the opened tab to the receipt URL
+      if (receiptTab) {
+        receiptTab.location.href = receiptUrl;
+      } else {
+        // Fallback if the tab couldn't be opened initially
+        window.open(receiptUrl, "_blank");
+      }
 
       setTimeout(() => {
         setIsSuccess(false);
       }, 5000);
     } catch (err: any) {
+      if (receiptTab) receiptTab.close();
       console.error('Error generating manual receipt:', err);
       setError(err.message || 'Failed to generate manual receipt via the Admin API.');
     } finally {
@@ -466,7 +481,7 @@ export default function ReceiptGeneratorPage() {
                     value={formData.aecId}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. AEC-ORG-1092"
+                    placeholder="e.g. AEC-3078"
                     className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-600 font-mono"
                   />
                   <button

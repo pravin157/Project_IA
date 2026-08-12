@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       let json: any = null;
       try {
         json = JSON.parse(text);
-      } catch {}
+      } catch { }
       return { status: res.status, text, json };
     };
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       if (prodResult.status === 200 && prodResult.json && prodResult.json.body !== null) {
         return NextResponse.json(prodResult.json, { status: 200 });
       }
-      
+
       // If not found (or error) in production, fall back to sandbox
       const sandboxResult = await callPaymaster(PAYMASTER_SANDBOX_ENDPOINT);
       if (sandboxResult.json) return NextResponse.json(sandboxResult.json, { status: sandboxResult.status });
