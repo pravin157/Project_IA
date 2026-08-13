@@ -8,6 +8,8 @@ import { generateReceiptApi, GenerateReceiptParams } from '@/api/sales/generateR
 import { getPaymentGatewayDetailsApi, PaymentGatewayDetails } from '@/api/sales/getPaymentGatewayDetails';
 import { getOrganizationByAccountIdApi } from '@/api/sales/getOrganizationByAccountId';
 import { createManualReceiptApi, CreateManualReceiptParams } from '@/api/sales/createManualReceipt';
+import { getAllPlansApi } from '@/api/sales/getAllPlans';
+import { getSubscriptionPlanByIdApi } from '@/api/sales/getSubscriptionPlanById';
 
 export const salesService = {
   async getOrganizations(): Promise<any[]> {
@@ -48,7 +50,16 @@ export const salesService = {
 
   async createManualReceipt(params: CreateManualReceiptParams): Promise<any> {
     return createManualReceiptApi(params);
+  },
+
+  async getAllPlans(country: string): Promise<any[]> {
+    return getAllPlansApi(country);
+  },
+
+  async getSubscriptionPlanById(planId: string): Promise<any> {
+    return getSubscriptionPlanByIdApi(planId);
   }
 };
+
 
 
