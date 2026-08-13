@@ -50,6 +50,19 @@ const DURATION_OPTIONS = [
   'Quarterly'
 ];
 
+const DEFAULT_COUNTRIES = [
+  { code: 'US', name: 'United States (US)' },
+  { code: 'IN', name: 'India (IN)' },
+  { code: 'GB', name: 'United Kingdom (GB)' },
+  { code: 'CA', name: 'Canada (CA)' },
+  { code: 'AU', name: 'Australia (AU)' },
+  { code: 'SG', name: 'Singapore (SG)' },
+  { code: 'AE', name: 'United Arab Emirates (AE)' },
+  { code: 'MY', name: 'Malaysia (MY)' },
+  { code: 'ZA', name: 'South Africa (ZA)' },
+  { code: 'MX', name: 'Mexico (MX)' }
+];
+
 export default function ReceiptGeneratorPage() {
   // Get current local date and time formatted for datetime-local input
   const getCurrentDateTime = () => {
@@ -71,6 +84,9 @@ export default function ReceiptGeneratorPage() {
     countryCode: 'US',
     planName: 'All in One Plan'
   });
+
+  const [countryOptions, setCountryOptions] = useState(DEFAULT_COUNTRIES);
+
 
   const [currencySymbol, setCurrencySymbol] = useState<string>('$');
   const [currencyCode, setCurrencyCode] = useState<string>('USD');
@@ -128,6 +144,18 @@ export default function ReceiptGeneratorPage() {
       setOrganizations([org]);
       setSelectedOrganizationId(org.organizationId);
       setOrgSuccess(true);
+
+      const orgCountryCode = (org.countryCode || org.country || '').toUpperCase();
+      if (orgCountryCode) {
+        setCountryOptions(prev => {
+          if (!prev.some(opt => opt.code === orgCountryCode)) {
+            return [...prev, { code: orgCountryCode, name: `${orgCountryCode} (Auto-detected)` }];
+          }
+          return prev;
+        });
+        setFormData(prev => ({ ...prev, countryCode: orgCountryCode }));
+      }
+
     } catch (err: any) {
       console.error('Error verifying organization:', err);
       setOrgError(err.message || 'Network error: Failed to reach the organization service.');
@@ -355,21 +383,16 @@ export default function ReceiptGeneratorPage() {
       email: selectedOrg?.emailAddress || ''
     };
 
-    // Open a blank tab synchronously to prevent popup blocker
-    const receiptTab = typeof window !== 'undefined' ? window.open('about:blank', '_blank') : null;
-
     try {
       // Call CREATE_MANUAL_RECEIPT API
       const response = await salesService.createManualReceipt(receiptData);
       
       if (!response) {
-        if (receiptTab) receiptTab.close();
         throw new Error('Invalid receipt API response: No response received.');
       }
       
       // Extract generated receipt ID if available, otherwise throw error
       if (!response.body || !response.body.receiptId) {
-        if (receiptTab) receiptTab.close();
         throw new Error('Invalid receipt API response: Missing response.body.receiptId.');
       }
       
@@ -395,19 +418,13 @@ export default function ReceiptGeneratorPage() {
 
       setIsSuccess(true);
       
-      // Navigate the opened tab to the receipt URL
-      if (receiptTab) {
-        receiptTab.location.href = receiptUrl;
-      } else {
-        // Fallback if the tab couldn't be opened initially
-        window.open(receiptUrl, "_blank");
-      }
+      // Only open the generated receipt in a new tab after it has been created successfully
+      window.open(receiptUrl, "_blank");
 
       setTimeout(() => {
         setIsSuccess(false);
       }, 5000);
     } catch (err: any) {
-      if (receiptTab) receiptTab.close();
       console.error('Error generating manual receipt:', err);
       setError(err.message || 'Failed to generate manual receipt via the Admin API.');
     } finally {
@@ -522,6 +539,9 @@ export default function ReceiptGeneratorPage() {
                         Organization Verified
                       </p>
                       <div className="text-[10px] text-slate-400 font-mono space-y-0.5">
+                        {organizations[0]?.organizationName && (
+                          <div>Name: <span className="text-slate-200 font-semibold">{organizations[0]?.organizationName}</span></div>
+                        )}
                         <div>Account ID: <span className="text-slate-200">{organizations[0]?.accountId}</span></div>
                         <div>Org ID: <span className="text-slate-200">{organizations[0]?.organizationId}</span></div>
                       </div>
@@ -541,7 +561,7 @@ export default function ReceiptGeneratorPage() {
                         <option value="" disabled>-- Select Organization --</option>
                         {organizations.map((org) => (
                           <option key={org.organizationId} value={org.organizationId}>
-                            {org.organizationId} (Account: {org.accountId})
+                            {org.organizationName || org.organizationId} (Account: {org.accountId})
                           </option>
                         ))}
                       </select>
@@ -566,35 +586,35 @@ export default function ReceiptGeneratorPage() {
                 />
               </div>
 
-              {/* 3. Country Code (strictly 2 characters) */}
+              {/* 3. Country Code Dropdown */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <Globe className="w-4 h-4 text-rose-400" />
                     Country Code
                   </label>
-                  <span className="text-[10px] text-slate-500 font-bold uppercase">2 Chars Only</span>
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Dropdown</span>
                 </div>
                 <div className="relative">
-                  <input
-                    type="text"
+                  <select
                     name="countryCode"
                     value={formData.countryCode}
                     onChange={handleChange}
                     required
-                    maxLength={2}
-                    placeholder="US"
-                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all uppercase tracking-widest font-mono placeholder:text-slate-600"
-                  />
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all cursor-pointer font-mono"
+                  >
+                    {countryOptions.map((opt) => (
+                      <option key={opt.code} value={opt.code} className="bg-[#0b1120] text-white">
+                        {opt.name}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Custom Arrow / Loading indicator */}
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none gap-2 text-slate-500">
                     {isLoadingGateway ? (
                       <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
-                    ) : formData.countryCode.length === 2 ? (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        {formData.countryCode}
-                      </span>
                     ) : (
-                      <span className="text-[10px] text-amber-400 font-semibold">2 chars</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     )}
                   </div>
                 </div>
@@ -605,6 +625,7 @@ export default function ReceiptGeneratorPage() {
                   </p>
                 )}
               </div>
+
 
               {/* 4. Amount with Dynamic Currency Symbol */}
               <div>

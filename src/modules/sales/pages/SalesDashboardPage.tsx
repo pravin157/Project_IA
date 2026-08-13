@@ -9,13 +9,22 @@ import {
   CheckCircle2,
   Clock,
   Briefcase,
-  X
+  X,
+  Users,
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
 import { salesService } from '@/services/salesService';
 
 export default function SalesDashboardPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
+  const [selectedPlanName, setSelectedPlanName] = useState<string>('');
+  const [selectedPlanDisplayName, setSelectedPlanDisplayName] = useState<string>('');
+  const [allocatedLicenses, setAllocatedLicenses] = useState<number | string>('');
   const [extensionDate, setExtensionDate] = useState<string>('');
+  const [paymentTenure, setPaymentTenure] = useState<string>('MONTHLY');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -32,7 +41,6 @@ export default function SalesDashboardPage() {
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
   const [plansError, setPlansError] = useState<string | null>(null);
   const [countryCode, setCountryCode] = useState<string>('IN');
-  const [currentPlanName, setCurrentPlanName] = useState<string>('');
 
   const selectedCompanyName = useMemo(() => {
     const org = organizations.find(o => o.organizationId === selectedCompanyId);
@@ -65,29 +73,23 @@ export default function SalesDashboardPage() {
 
   // Fetch plans by country code
   const fetchPlans = async (country: string) => {
-    if (!country) return;
+    if (!country) return [];
     setIsLoadingPlans(true);
     setPlansError(null);
     try {
       const data = await salesService.getAllPlans(country.toUpperCase());
-      setPlans(data || []);
+      const fetchedPlans = data || [];
+      setPlans(fetchedPlans);
+      return fetchedPlans;
     } catch (err: any) {
       console.error(err);
       setPlansError(err.message || 'Failed to load subscription plans.');
       setPlans([]);
+      return [];
     } finally {
       setIsLoadingPlans(false);
     }
   };
-
-  // Trigger plans fetch when countryCode or selectedCompanyId changes
-  useEffect(() => {
-    if (selectedCompanyId && countryCode) {
-      fetchPlans(countryCode);
-    } else {
-      setPlans([]);
-    }
-  }, [countryCode, selectedCompanyId]);
 
   // Fetch subscription details for the selected company
   const handleSelectCompany = async (orgId: string) => {
@@ -95,7 +97,11 @@ export default function SalesDashboardPage() {
     setIsSuccess(false);
     setExtensionDate('');
     setSubscriptionError(null);
-    setCurrentPlanName('');
+    setSelectedPlanId('');
+    setSelectedPlanName('');
+    setSelectedPlanDisplayName('');
+    setAllocatedLicenses('');
+    setPaymentTenure('MONTHLY');
 
     if (!orgId) {
       setCurrentSubscription(null);
@@ -112,28 +118,49 @@ export default function SalesDashboardPage() {
 
       const org = organizations.find(o => o.organizationId === orgId);
       const code = org?.countryCode || org?.country || 'IN';
-      setCountryCode(code.toUpperCase());
+      const upperCode = code.toUpperCase();
+      setCountryCode(upperCode);
+
+      // Populate allocated licenses
+      if (sub && sub.licenseCount !== undefined) {
+        setAllocatedLicenses(sub.licenseCount);
+      } else if (sub && sub.licenseCountAllocated !== undefined) {
+        setAllocatedLicenses(sub.licenseCountAllocated);
+      } else {
+        setAllocatedLicenses(0);
+      }
+
+      // Populate payment tenure
+      if (sub && sub.paymentTenure) {
+        setPaymentTenure(sub.paymentTenure.toUpperCase());
+      } else {
+        setPaymentTenure('MONTHLY');
+      }
+
+      // Fetch plans for org country
+      const availablePlans = await fetchPlans(upperCode);
 
       if (sub && sub.subscriptionPlanId) {
+        setSelectedPlanId(sub.subscriptionPlanId);
         try {
           const plan = await salesService.getSubscriptionPlanById(sub.subscriptionPlanId);
           if (plan) {
-            setCurrentPlanName(plan.displayName || plan.planName || 'N/A');
+            setSelectedPlanName(plan.planName || 'N/A');
+            setSelectedPlanDisplayName(plan.displayName || plan.planName || 'N/A');
           } else {
-            setCurrentPlanName('N/A');
+            const matched = availablePlans.find((p: any) => p.planId === sub.subscriptionPlanId);
+            setSelectedPlanName(matched ? matched.planName : (sub.planName || 'N/A'));
+            setSelectedPlanDisplayName(matched ? (matched.displayName || matched.planName) : (sub.planName || 'N/A'));
           }
         } catch (planErr) {
           console.error(planErr);
-          // Try lookup in already loaded plans
-          const matchedPlan = plans.find(p => p.planId === sub.subscriptionPlanId);
-          if (matchedPlan) {
-            setCurrentPlanName(matchedPlan.displayName || matchedPlan.planName);
-          } else {
-            setCurrentPlanName('N/A');
-          }
+          const matched = availablePlans.find((p: any) => p.planId === sub.subscriptionPlanId);
+          setSelectedPlanName(matched ? matched.planName : (sub.planName || 'N/A'));
+          setSelectedPlanDisplayName(matched ? (matched.displayName || matched.planName) : (sub.planName || 'N/A'));
         }
       } else {
-        setCurrentPlanName('No Active Plan');
+        setSelectedPlanName('');
+        setSelectedPlanDisplayName('No Active Plan');
       }
     } catch (err: any) {
       console.error(err);
@@ -143,25 +170,25 @@ export default function SalesDashboardPage() {
     }
   };
 
-  // Fallback to update plan name from plans list if getSubscriptionPlanById wasn't set or as fallback
+  // Synchronize plan name if plans finish loading later
   useEffect(() => {
-    if (currentSubscription?.subscriptionPlanId && (!currentPlanName || currentPlanName === 'N/A' || currentPlanName === 'Loading plan name...') && plans.length > 0) {
-      const matchedPlan = plans.find((p: any) => p.planId === currentSubscription.subscriptionPlanId);
+    if (selectedPlanId && (!selectedPlanDisplayName || selectedPlanDisplayName === 'N/A') && plans.length > 0) {
+      const matchedPlan = plans.find((p: any) => p.planId === selectedPlanId);
       if (matchedPlan) {
-        setCurrentPlanName(matchedPlan.displayName || matchedPlan.planName);
+        setSelectedPlanName(matchedPlan.planName);
+        setSelectedPlanDisplayName(matchedPlan.displayName || matchedPlan.planName);
       }
     }
-  }, [plans, currentSubscription, currentPlanName]);
-
+  }, [plans, selectedPlanId, selectedPlanDisplayName]);
 
   // Helper to format timestamp
   const formatTimestamp = (ts: string | number | null | undefined) => {
     if (!ts) return 'N/A';
     const val = typeof ts === 'string' ? Number(ts) : ts;
-    if (isNaN(val)) return 'N/A';
+    if (isNaN(val) || val <= 0) return 'N/A';
     return new Date(val).toLocaleDateString(undefined, {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   };
@@ -170,37 +197,97 @@ export default function SalesDashboardPage() {
   const getMinExtensionDate = (validTill: string | number | null | undefined) => {
     if (!validTill) return undefined;
     const val = typeof validTill === 'string' ? Number(validTill) : validTill;
-    if (isNaN(val)) return undefined;
-    // Add 1 day to the current expiry date for the input type="date" min attribute
+    if (isNaN(val) || val <= 0) return undefined;
     const d = new Date(val + 24 * 60 * 60 * 1000);
     return d.toISOString().split('T')[0];
   };
 
+  const handlePlanChange = (planId: string) => {
+    setSelectedPlanId(planId);
+    const matchedPlan = plans.find((p: any) => p.planId === planId);
+    if (matchedPlan) {
+      setSelectedPlanName(matchedPlan.planName);
+      setSelectedPlanDisplayName(matchedPlan.displayName || matchedPlan.planName);
+    }
+  };
+
+  // Validation helpers
+  const licenseCountUsed = currentSubscription?.licenseCountUsed ?? 0;
+  const numAllocated = Number(allocatedLicenses);
+  const isLicenseCountInvalid = Boolean(
+    currentSubscription && (isNaN(numAllocated) || numAllocated < licenseCountUsed || numAllocated < 1)
+  );
+
+  const currentTillTs = currentSubscription ? Number(currentSubscription.subscriptionValidTill || 0) : 0;
+  const isExtensionDateInvalid = Boolean(
+    extensionDate && currentTillTs > 0 && new Date(extensionDate).getTime() <= currentTillTs
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCompanyId || !extensionDate || !currentSubscription) return;
+    setSubscriptionError(null);
+
+    if (!selectedCompanyId) {
+      setSubscriptionError('Please select an organization.');
+      return;
+    }
+
+    if (!currentSubscription) {
+      setSubscriptionError('No active subscription loaded for selected organization.');
+      return;
+    }
+
+    if (!selectedPlanId) {
+      setSubscriptionError('Selected subscription plan is invalid.');
+      return;
+    }
+
+    if (isLicenseCountInvalid) {
+      setSubscriptionError(`Allocated licenses cannot be lower than the licenses already in use (${licenseCountUsed}).`);
+      return;
+    }
+
+    if (isExtensionDateInvalid) {
+      setSubscriptionError('Subscription expiry date must be later than the current expiry date.');
+      return;
+    }
+
+    const validFrom = Number(currentSubscription.subscriptionValidFrom || currentSubscription.validFrom || Date.now());
+    const validTill = extensionDate
+      ? new Date(extensionDate).getTime()
+      : Number(currentSubscription.subscriptionValidTill || currentSubscription.validTill || Date.now());
+
+    const finalTenure = paymentTenure || currentSubscription.paymentTenure || 'MONTHLY';
+    const recurringAutoDebit = Boolean(
+      currentSubscription.isRecurringAutoDebit ?? currentSubscription.recurringAutoDebit ?? false
+    );
+
+    const payload = {
+      organizationId: selectedCompanyId,
+      planId: selectedPlanId,
+      planName: selectedPlanName, // Exact internal planName required by Paymaster DB (e.g. ALL_IN_ONE_PLAN)
+      validFrom,
+      validTill,
+      licenseCount: numAllocated,
+      paymentTenure: finalTenure,
+      recurringAutoDebit
+    };
 
     setIsSubmitting(true);
     setIsSuccess(false);
-    setSubscriptionError(null);
 
     try {
-      await salesService.extendSubscription({
-        organizationId: selectedCompanyId,
-        subscriptionId: currentSubscription.organizationSubscriptionId,
-        extendedToDate: extensionDate
-      });
+      await salesService.updateSubscription(payload);
       setIsSuccess(true);
       setShowSuccessModal(true);
-      // Refresh subscription details
+      // Refresh subscription details from backend to ensure DB state reflection
       await handleSelectCompany(selectedCompanyId);
-      // Reset success indicator after 5 seconds
       setTimeout(() => {
         setIsSuccess(false);
       }, 5000);
     } catch (err: any) {
       console.error(err);
-      setSubscriptionError(err.message || 'An error occurred while extending the subscription.');
+      setSubscriptionError(err.message || 'Failed to update organization subscription.');
     } finally {
       setIsSubmitting(false);
     }
@@ -220,27 +307,27 @@ export default function SalesDashboardPage() {
           Subscription Management
         </h1>
         <p className="text-slate-400 text-sm sm:text-base">
-          Update and extend client billing cycles securely.
+          Manage client subscription plans, license allocations, payment tenures, and billing expiry dates.
         </p>
       </div>
 
-      {/* Main Card */}
+      {/* Main Container */}
       <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
 
         {/* Form Column */}
         <div className="lg:col-span-3">
           <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
 
-            {/* Background Decorations */}
+            {/* Background Glow */}
             <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-sky-500/10 blur-3xl rounded-full pointer-events-none" />
 
             <form onSubmit={handleSubmit} className="relative z-10 space-y-6">
 
-              {/* Field 1: Company Selection */}
+              {/* Field 1: Organization Selection */}
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-sky-400" />
-                  Select Company
+                  Organization
                 </label>
                 <div className="relative">
                   <select
@@ -251,7 +338,7 @@ export default function SalesDashboardPage() {
                     disabled={isLoadingOrgs}
                   >
                     <option value="" disabled>
-                      {isLoadingOrgs ? 'Loading companies...' : 'Choose a client...'}
+                      {isLoadingOrgs ? 'Loading organizations...' : 'Select an organization...'}
                     </option>
                     {organizations.map(company => (
                       <option key={company.organizationId} value={company.organizationId}>
@@ -259,143 +346,184 @@ export default function SalesDashboardPage() {
                       </option>
                     ))}
                   </select>
-                  {/* Custom Arrow */}
                   <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                   </div>
                 </div>
               </div>
 
-              {/* Field 1.5: Organization Plan Name */}
-              {selectedCompanyId && (
-                <div className="transition-all duration-300 animate-fade-in">
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-emerald-400" />
-                    Organization Plan Name
-                  </label>
-                  <input
-                    type="text"
-                    readOnly
-                    value={isLoadingSubscription ? 'Loading plan name...' : currentPlanName || 'No Active Plan'}
-                    className="w-full bg-[#080d15] border border-slate-700/80 text-slate-300 text-sm rounded-xl px-4 py-3.5 outline-none cursor-not-allowed select-all"
-                    placeholder="No active subscription plan"
-                  />
+              {/* Subscription Form Fields (Visible when org is selected) */}
+              {isLoadingSubscription ? (
+                <div className="bg-[#080d15] border border-slate-700/80 rounded-xl p-8 flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
+                  <span className="text-slate-400 text-xs font-medium">Fetching organization subscription details...</span>
                 </div>
-              )}
+              ) : selectedCompanyId && !currentSubscription ? (
+                <div className="bg-[#080d15] border border-red-500/20 rounded-xl p-6 text-center text-slate-400 text-sm">
+                  <CreditCard className="w-8 h-8 text-red-400 mx-auto mb-2 opacity-60" />
+                  <p className="font-semibold text-slate-300">No Subscription Found</p>
+                  <p className="text-xs text-slate-500 mt-1">This organization does not have an active subscription record.</p>
+                </div>
+              ) : currentSubscription ? (
+                <div className="space-y-6 animate-fade-in">
 
-
-              {/* Field 2: Current Subscription Details */}
-              <div className="transition-all duration-300">
-                {isLoadingSubscription ? (
-                  <div className="bg-[#080d15] border border-slate-700/80 rounded-xl p-6 flex flex-col items-center justify-center gap-3">
-                    <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
-                    <span className="text-slate-400 text-xs font-medium">Fetching subscription details...</span>
-                  </div>
-                ) : selectedCompanyId && !currentSubscription ? (
-                  <div className="bg-[#080d15] border border-red-500/20 rounded-xl p-6 text-center text-slate-400 text-sm">
-                    <CreditCard className="w-8 h-8 text-red-400 mx-auto mb-2 opacity-60" />
-                    <p className="font-semibold text-slate-300">No subscription found</p>
-                    <p className="text-xs text-slate-500 mt-1">This organization does not have an active billing plan.</p>
-                  </div>
-                ) : currentSubscription ? (
-                  <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  {/* Field 2: Organization Plan Dropdown */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-emerald-400" />
-                      Current Subscription
+                      Organization Plan
                     </label>
-                    <div className="bg-[#080d15] border border-slate-700/80 rounded-xl p-5 space-y-4 relative overflow-hidden">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">PLAN ID</span>
-                          <span className="text-white font-mono text-xs bg-[#0b1120] border border-slate-800 px-2.5 py-1 rounded-md">
-                            {currentSubscription.subscriptionPlanId || 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex gap-2">
-                          {currentSubscription.isSubscriptionPlanActive && !currentSubscription.isDeactivated ? (
-                            <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                              Active
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider">
-                              Inactive
-                            </span>
-                          )}
-                          {currentSubscription.isFreeTrial && (
-                            <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
-                              Free Trial
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/80 text-xs">
-                        <div>
-                          <span className="text-slate-500 block mb-0.5 font-medium">Valid From</span>
-                          <span className="text-slate-300">{formatTimestamp(currentSubscription.subscriptionValidFrom)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block mb-0.5 font-medium">Expires At</span>
-                          <span className="text-slate-300 flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            {formatTimestamp(currentSubscription.subscriptionValidTill)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block mb-0.5 font-medium">Billing Tenure</span>
-                          <span className="text-slate-300 capitalize">{currentSubscription.paymentTenure || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block mb-0.5 font-medium">Auto Debit</span>
-                          <span className="text-slate-300">
-                            {currentSubscription.isRecurringAutoDebit ? 'Enabled (Recurring)' : 'Disabled'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block mb-0.5 font-medium">Licenses Allocated</span>
-                          <span className="text-slate-300">{currentSubscription.licenseCount ?? 0}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block mb-0.5 font-medium">Licenses Used</span>
-                          <span className="text-slate-300">{currentSubscription.licenseCountUsed ?? 0}</span>
-                        </div>
+                    <div className="relative">
+                      <select
+                        value={selectedPlanId}
+                        onChange={(e) => handlePlanChange(e.target.value)}
+                        disabled={isLoadingPlans || plans.length === 0}
+                        className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all disabled:opacity-75"
+                      >
+                        {isLoadingPlans ? (
+                          <option value="">Loading plans...</option>
+                        ) : plans.length === 0 ? (
+                          <option value={selectedPlanId}>{selectedPlanDisplayName || 'Current Plan'}</option>
+                        ) : (
+                          <>
+                            {selectedPlanId && !plans.some(p => p.planId === selectedPlanId) && (
+                              <option value={selectedPlanId}>{selectedPlanDisplayName || selectedPlanId}</option>
+                            )}
+                            {plans.map((p: any) => (
+                              <option key={p.planId} value={p.planId}>
+                                {p.displayName || p.planName} {p.billingValue ? `(${p.currency === 'INR' ? '₹' : '$'}${Number(p.billingValue).toLocaleString()})` : ''}
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="bg-[#080d15]/50 border border-slate-800/80 rounded-xl p-4 text-center text-slate-500 text-xs">
-                    Select a company to load subscription details.
+
+                  {/* Field 3: Payment Tenure Dropdown */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                      Payment Tenure
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={paymentTenure}
+                        onChange={(e) => setPaymentTenure(e.target.value)}
+                        disabled={isLoadingSubscription || !currentSubscription}
+                        className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all font-semibold uppercase"
+                      >
+                        <option value="MONTHLY">Monthly</option>
+                        <option value="QUARTERLY">Quarterly</option>
+                        <option value="HALF_YEARLY">Half-Yearly</option>
+                        <option value="ANNUAL">Annual</option>
+                        {paymentTenure && !['MONTHLY', 'QUARTERLY', 'HALF_YEARLY', 'ANNUAL'].includes(paymentTenure) && (
+                          <option value={paymentTenure}>{paymentTenure}</option>
+                        )}
+                      </select>
+                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              {/* Field 3: Extend Subscription Date */}
-              <div className={`transition-all duration-300 ${currentSubscription ? 'opacity-100 h-auto' : 'opacity-40 pointer-events-none'}`}>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-purple-400" />
-                  Extend To Date
-                </label>
-                <input
-                  type="date"
-                  required={!!currentSubscription}
-                  value={extensionDate}
-                  min={getMinExtensionDate(currentSubscription?.subscriptionValidTill)}
-                  onChange={(e) => setExtensionDate(e.target.value)}
-                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all custom-calendar-icon"
-                />
-              </div>
+                  {/* Field 4: Allocated Licenses */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-blue-400" />
+                      Allocated Licenses
+                    </label>
+                    <input
+                      type="number"
+                      min={licenseCountUsed || 1}
+                      value={allocatedLicenses}
+                      onChange={(e) => setAllocatedLicenses(e.target.value)}
+                      placeholder="Enter license count"
+                      className={`w-full bg-[#080d15] border ${
+                        isLicenseCountInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500'
+                      } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 transition-all`}
+                    />
+                    <div className="flex items-center justify-between text-xs mt-2 px-1">
+                      <span className="text-slate-400">
+                        Licenses Used: <strong className="text-slate-200">{licenseCountUsed}</strong> <span className="text-slate-500">(read-only)</span>
+                      </span>
+                      {isLicenseCountInvalid && (
+                        <span className="text-red-400 font-medium flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          Cannot be lower than used ({licenseCountUsed})
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Submit Button & Notifications */}
+                  {/* Field 5: Expiry Dates */}
+                  <div className="space-y-3 pt-2 border-t border-slate-800/80">
+                    <div className="flex justify-between items-center bg-[#080d15] border border-slate-800 rounded-xl px-4 py-3 text-xs">
+                      <span className="text-slate-400 font-medium">Current Subscription Expiry</span>
+                      <span className="text-slate-200 font-semibold flex items-center gap-1.5 font-mono">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        {formatTimestamp(currentSubscription.subscriptionValidTill)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-purple-400" />
+                        Extend Subscription Until
+                      </label>
+                      <input
+                        type="date"
+                        value={extensionDate}
+                        min={getMinExtensionDate(currentSubscription.subscriptionValidTill)}
+                        onChange={(e) => setExtensionDate(e.target.value)}
+                        className={`w-full bg-[#080d15] border ${
+                          isExtensionDateInvalid ? 'border-red-500 focus:border-red-500' : 'border-slate-700/80 focus:border-purple-500'
+                        } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 focus:ring-purple-500 transition-all custom-calendar-icon`}
+                      />
+                      {isExtensionDateInvalid && (
+                        <p className="text-red-400 text-xs font-medium mt-1.5 px-1 flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          Expiry date must be later than current expiry date.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Read-Only Subscription Metadata (Auto-Debit) */}
+                  <div className="bg-[#080d15] border border-slate-800/80 rounded-xl p-4 text-xs flex justify-between items-center">
+                    <span className="text-slate-400 font-medium">Recurring Auto Debit</span>
+                    <span className="text-slate-200 font-semibold px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700">
+                      {(currentSubscription.isRecurringAutoDebit ?? currentSubscription.recurringAutoDebit) ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+
+                </div>
+              ) : (
+                <div className="bg-[#080d15]/50 border border-slate-800/80 rounded-xl p-6 text-center text-slate-500 text-xs">
+                  Select an organization above to manage subscription details.
+                </div>
+              )}
+
+              {/* Error & Success Messages & Submit Button */}
               <div className="pt-2 space-y-4">
                 {subscriptionError && (
-                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex gap-2 animate-fade-in">
-                    <span className="font-bold">Error:</span>
+                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2 animate-fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                     <span>{subscriptionError}</span>
                   </div>
                 )}
                 {orgsError && (
-                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex gap-2 animate-fade-in">
-                    <span className="font-bold">Error:</span>
+                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2 animate-fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                     <span>{orgsError}</span>
                   </div>
                 )}
@@ -403,19 +531,26 @@ export default function SalesDashboardPage() {
                 {isSuccess ? (
                   <div className="w-full py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2 animate-fade-in">
                     <CheckCircle2 className="w-5 h-5" />
-                    Subscription Extended Successfully!
+                    Subscription Updated Successfully!
                   </div>
                 ) : (
                   <button
                     type="submit"
-                    disabled={!currentSubscription || !extensionDate || isSubmitting}
+                    disabled={
+                      !currentSubscription ||
+                      !selectedCompanyId ||
+                      !selectedPlanId ||
+                      isLicenseCountInvalid ||
+                      isExtensionDateInvalid ||
+                      isSubmitting
+                    }
                     className="w-full py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-[0.98] text-white font-semibold text-sm transition-all duration-200 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
                   >
                     {isSubmitting ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        Confirm Extension
+                        Update Subscription
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
@@ -429,132 +564,30 @@ export default function SalesDashboardPage() {
 
         {/* Info Column */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-xl">
-            <h3 className="text-white font-bold mb-3 flex items-center gap-2 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Quick Tips
+          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4">
+            <h3 className="text-white font-bold flex items-center gap-2 text-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              Subscription Management Guidelines
             </h3>
-            <ul className="space-y-3 text-sm text-slate-400">
+            <ul className="space-y-3 text-xs text-slate-400 leading-relaxed">
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
-                Select a company to view their currently active subscription details.
+                Select an organization to load its active subscription and plan options.
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
-                The extension date must be strictly after the current expiration date.
+                Changing the organization plan or payment tenure updates the backend payload dynamically.
               </li>
               <li className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
-                Once confirmed, the client's subscription expiry date will immediately update.
+                Allocated license count cannot be set lower than the licenses currently in use.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
+                Extending subscription expiry is optional; if left unchanged, the current expiry date is maintained.
               </li>
             </ul>
           </div>
-
-          {/* Available Plans Card */}
-          {selectedCompanyId && (
-            <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-                <h3 className="text-white font-bold flex items-center gap-2 text-sm">
-                  <Briefcase className="w-4 h-4 text-sky-400" />
-                  Available Billing Plans
-                </h3>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase">Country</span>
-                  <input
-                    type="text"
-                    maxLength={2}
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
-                    className="w-12 bg-[#080d15] border border-slate-700/80 text-white text-xs rounded px-2 py-1 outline-none text-center font-bold font-mono focus:border-sky-500 transition-all uppercase"
-                  />
-                </div>
-              </div>
-
-              {isLoadingPlans ? (
-                <div className="flex flex-col items-center justify-center py-8 gap-2.5">
-                  <div className="w-6 h-6 border-2 border-sky-500/30 border-t-sky-400 rounded-full animate-spin" />
-                  <span className="text-slate-500 text-xs">Loading plans...</span>
-                </div>
-              ) : plansError ? (
-                <div className="p-3.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl">
-                  {plansError}
-                </div>
-              ) : plans.length === 0 ? (
-                <div className="text-center text-slate-500 text-xs py-6">
-                  No plans found for country code "{countryCode}".
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
-                  {plans.map((plan: any) => (
-                    <div key={plan.planId} className="bg-[#080d15] border border-slate-800 rounded-xl p-4 space-y-2 relative overflow-hidden group hover:border-slate-700 transition-all">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <span className="text-white font-bold text-xs block group-hover:text-sky-400 transition-colors">
-                            {plan.displayName || plan.planName}
-                          </span>
-                          <span className="text-[9px] font-mono text-slate-500 uppercase">
-                            ID: {plan.planId.substring(0, 8)}...
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-emerald-400 font-bold text-xs block">
-                            {plan.currency === 'INR' ? '₹' : plan.currency === 'USD' ? '$' : plan.currency}
-                            {Number(plan.billingValue).toLocaleString()}
-                          </span>
-                          <span className="text-[9px] text-slate-500 uppercase block font-semibold">
-                            {plan.billingType || 'N/A'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {plan.planDesc && (
-                        <p className="text-[10px] text-slate-400 leading-relaxed">
-                          {plan.planDesc}
-                        </p>
-                      )}
-
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">
-                          Period: {plan.billingPeriod} Days
-                        </span>
-                        {plan.taxPercentage > 0 && (
-                          <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-emerald-400 font-medium">
-                            Tax: {plan.taxPercentage}%
-                          </span>
-                        )}
-                        {plan.isCustom && (
-                          <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold">
-                            Custom
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Display plan access modules */}
-                      {plan.planAccess && plan.planAccess.length > 0 && (
-                        <div className="pt-2 border-t border-slate-800/80">
-                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Features Access</span>
-                          <div className="flex flex-wrap gap-1">
-                            {plan.planAccess.map((access: any, idx: number) => (
-                              <span 
-                                key={idx} 
-                                className={`text-[8px] px-1.5 py-0.5 rounded font-mono ${
-                                  access.hasAccess || access.hasAccess === undefined 
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                }`}
-                              >
-                                {access.module}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
       </div>
@@ -573,32 +606,40 @@ export default function SalesDashboardPage() {
               <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 mb-5 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Subscription Extended!</h2>
+              <h2 className="text-xl font-bold text-white mb-2">Subscription Updated!</h2>
               <p className="text-slate-400 text-sm mb-6">
-                The billing plan for <span className="text-sky-400 font-semibold">{selectedCompanyName}</span> has been successfully updated.
+                The subscription details for <span className="text-sky-400 font-semibold">{selectedCompanyName}</span> have been successfully saved to the database.
               </p>
               <div className="bg-[#080d15] border border-slate-800 rounded-xl p-4 w-full mb-6 text-left space-y-2.5">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-500">New Expiry Date</span>
-                  <span className="text-emerald-400 font-semibold">{formatTimestamp(currentSubscription?.subscriptionValidTill)}</span>
+                  <span className="text-slate-500">Plan Name</span>
+                  <span className="text-white font-semibold">{selectedPlanDisplayName || selectedPlanName || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between text-xs border-t border-slate-800/80 pt-2.5">
-                  <span className="text-slate-500">Plan ID</span>
-                  <span className="text-slate-300 font-mono">{currentSubscription?.subscriptionPlanId || 'N/A'}</span>
+                  <span className="text-slate-500">Payment Tenure</span>
+                  <span className="text-amber-400 font-semibold uppercase">{paymentTenure}</span>
+                </div>
+                <div className="flex justify-between text-xs border-t border-slate-800/80 pt-2.5">
+                  <span className="text-slate-500">Allocated Licenses</span>
+                  <span className="text-blue-400 font-semibold">{allocatedLicenses}</span>
+                </div>
+                <div className="flex justify-between text-xs border-t border-slate-800/80 pt-2.5">
+                  <span className="text-slate-500">Expiry Date</span>
+                  <span className="text-emerald-400 font-semibold">{formatTimestamp(currentSubscription?.subscriptionValidTill)}</span>
                 </div>
               </div>
               <button
                 onClick={() => setShowSuccessModal(false)}
                 className="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-sm transition-all shadow-[0_0_15px_rgba(14,165,233,0.2)]"
               >
-                Got it, thanks!
+                Done
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Custom styles for native date picker icon to blend with dark mode */}
+      {/* Custom calendar icon styling & keyframes */}
       <style dangerouslySetInnerHTML={{
         __html: `
         .custom-calendar-icon::-webkit-calendar-picker-indicator {
@@ -622,20 +663,6 @@ export default function SalesDashboardPage() {
         }
         .animate-scale-up {
           animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.02);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.10);
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255,255,255,0.20);
         }
       `}} />
     </div>

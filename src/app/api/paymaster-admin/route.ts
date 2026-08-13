@@ -7,8 +7,12 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     
-    const isReceiptEvent = body.eventType === 'CREATE_MANUAL_RECEIPT' || body.eventType === 'GENERATE_RECEIPT';
-    const baseEndpoint = isReceiptEvent
+    const isLocalAdminEvent = 
+      body.eventType === 'CREATE_MANUAL_RECEIPT' || 
+      body.eventType === 'GENERATE_RECEIPT' ||
+      body.eventType === 'UPDATE_ORGANIZATION_SUBSCRIPTION' ||
+      body.eventType === 'EXTEND_SUBSCRIPTION_DATE';
+    const baseEndpoint = isLocalAdminEvent
       ? (process.env.PAYMASTER_LOCAL_ENDPOINT || 'http://localhost:9097')
       : PAYMASTER_ENDPOINT;
 
