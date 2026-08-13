@@ -132,7 +132,10 @@ export default function SalesDashboardPage() {
 
       // Populate payment tenure
       if (sub && sub.paymentTenure) {
-        setPaymentTenure(sub.paymentTenure.toUpperCase());
+        let pt = sub.paymentTenure.toUpperCase();
+        if (pt === 'ANNUALLY') pt = 'ANNUAL';
+        if (pt === 'HALF YEARLY') pt = 'HALF_YEARLY';
+        setPaymentTenure(pt);
       } else {
         setPaymentTenure('MONTHLY');
       }
@@ -257,7 +260,14 @@ export default function SalesDashboardPage() {
       ? new Date(extensionDate).getTime()
       : Number(currentSubscription.subscriptionValidTill || currentSubscription.validTill || Date.now());
 
-    const finalTenure = paymentTenure || currentSubscription.paymentTenure || 'MONTHLY';
+    let finalTenure = paymentTenure || currentSubscription?.paymentTenure || 'MONTHLY';
+    finalTenure = finalTenure.toUpperCase().trim();
+    if (finalTenure === 'ANNUALLY' || finalTenure === 'YEARLY') finalTenure = 'ANNUAL';
+    if (finalTenure === 'HALF YEARLY') finalTenure = 'HALF_YEARLY';
+    if (!['MONTHLY', 'QUARTERLY', 'HALF_YEARLY', 'ANNUAL'].includes(finalTenure)) {
+      finalTenure = 'MONTHLY'; // Fallback to safe default if completely unknown
+    }
+
     const recurringAutoDebit = Boolean(
       currentSubscription.isRecurringAutoDebit ?? currentSubscription.recurringAutoDebit ?? false
     );
@@ -391,11 +401,15 @@ export default function SalesDashboardPage() {
                             {selectedPlanId && !plans.some(p => p.planId === selectedPlanId) && (
                               <option value={selectedPlanId}>{selectedPlanDisplayName || selectedPlanId}</option>
                             )}
-                            {plans.map((p: any) => (
-                              <option key={p.planId} value={p.planId}>
-                                {p.displayName || p.planName} {p.billingValue ? `(${p.currency === 'INR' ? '₹' : '$'}${Number(p.billingValue).toLocaleString()})` : ''}
-                              </option>
-                            ))}
+                            {plans.map((p: any) => {
+                              const rawName = p.displayName || p.planName || '';
+                              const baseName = rawName.split(' - ')[0].trim();
+                              return (
+                                <option key={p.planId} value={p.planId}>
+                                  {baseName}
+                                </option>
+                              );
+                            })}
                           </>
                         )}
                       </select>
