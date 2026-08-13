@@ -539,6 +539,9 @@ export default function ReceiptGeneratorPage() {
                         Organization Verified
                       </p>
                       <div className="text-[10px] text-slate-400 font-mono space-y-0.5">
+                        {organizations[0]?.organizationName && (
+                          <div>Name: <span className="text-slate-200 font-semibold">{organizations[0]?.organizationName}</span></div>
+                        )}
                         <div>Account ID: <span className="text-slate-200">{organizations[0]?.accountId}</span></div>
                         <div>Org ID: <span className="text-slate-200">{organizations[0]?.organizationId}</span></div>
                       </div>
@@ -558,7 +561,7 @@ export default function ReceiptGeneratorPage() {
                         <option value="" disabled>-- Select Organization --</option>
                         {organizations.map((org) => (
                           <option key={org.organizationId} value={org.organizationId}>
-                            {org.organizationId} (Account: {org.accountId})
+                            {org.organizationName || org.organizationId} (Account: {org.accountId})
                           </option>
                         ))}
                       </select>
