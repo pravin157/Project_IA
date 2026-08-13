@@ -28,6 +28,12 @@ export default function SalesDashboardPage() {
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
 
+  const [plans, setPlans] = useState<any[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
+  const [plansError, setPlansError] = useState<string | null>(null);
+  const [countryCode, setCountryCode] = useState<string>('IN');
+  const [currentPlanName, setCurrentPlanName] = useState<string>('');
+
   const selectedCompanyName = useMemo(() => {
     const org = organizations.find(o => o.organizationId === selectedCompanyId);
     return org ? org.organizationName : '';
@@ -57,15 +63,43 @@ export default function SalesDashboardPage() {
     fetchOrgs();
   }, []);
 
+  // Fetch plans by country code
+  const fetchPlans = async (country: string) => {
+    if (!country) return;
+    setIsLoadingPlans(true);
+    setPlansError(null);
+    try {
+      const data = await salesService.getAllPlans(country.toUpperCase());
+      setPlans(data || []);
+    } catch (err: any) {
+      console.error(err);
+      setPlansError(err.message || 'Failed to load subscription plans.');
+      setPlans([]);
+    } finally {
+      setIsLoadingPlans(false);
+    }
+  };
+
+  // Trigger plans fetch when countryCode or selectedCompanyId changes
+  useEffect(() => {
+    if (selectedCompanyId && countryCode) {
+      fetchPlans(countryCode);
+    } else {
+      setPlans([]);
+    }
+  }, [countryCode, selectedCompanyId]);
+
   // Fetch subscription details for the selected company
   const handleSelectCompany = async (orgId: string) => {
     setSelectedCompanyId(orgId);
     setIsSuccess(false);
     setExtensionDate('');
     setSubscriptionError(null);
+    setCurrentPlanName('');
 
     if (!orgId) {
       setCurrentSubscription(null);
+      setPlans([]);
       return;
     }
 
@@ -75,6 +109,32 @@ export default function SalesDashboardPage() {
     try {
       const sub = await salesService.getSubscriptionDetails(orgId);
       setCurrentSubscription(sub);
+
+      const org = organizations.find(o => o.organizationId === orgId);
+      const code = org?.countryCode || org?.country || 'IN';
+      setCountryCode(code.toUpperCase());
+
+      if (sub && sub.subscriptionPlanId) {
+        try {
+          const plan = await salesService.getSubscriptionPlanById(sub.subscriptionPlanId);
+          if (plan) {
+            setCurrentPlanName(plan.displayName || plan.planName || 'N/A');
+          } else {
+            setCurrentPlanName('N/A');
+          }
+        } catch (planErr) {
+          console.error(planErr);
+          // Try lookup in already loaded plans
+          const matchedPlan = plans.find(p => p.planId === sub.subscriptionPlanId);
+          if (matchedPlan) {
+            setCurrentPlanName(matchedPlan.displayName || matchedPlan.planName);
+          } else {
+            setCurrentPlanName('N/A');
+          }
+        }
+      } else {
+        setCurrentPlanName('No Active Plan');
+      }
     } catch (err: any) {
       console.error(err);
       setSubscriptionError(err.message || 'Failed to load subscription details.');
@@ -82,6 +142,17 @@ export default function SalesDashboardPage() {
       setIsLoadingSubscription(false);
     }
   };
+
+  // Fallback to update plan name from plans list if getSubscriptionPlanById wasn't set or as fallback
+  useEffect(() => {
+    if (currentSubscription?.subscriptionPlanId && (!currentPlanName || currentPlanName === 'N/A' || currentPlanName === 'Loading plan name...') && plans.length > 0) {
+      const matchedPlan = plans.find((p: any) => p.planId === currentSubscription.subscriptionPlanId);
+      if (matchedPlan) {
+        setCurrentPlanName(matchedPlan.displayName || matchedPlan.planName);
+      }
+    }
+  }, [plans, currentSubscription, currentPlanName]);
+
 
   // Helper to format timestamp
   const formatTimestamp = (ts: string | number | null | undefined) => {
@@ -194,6 +265,24 @@ export default function SalesDashboardPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Field 1.5: Organization Plan Name */}
+              {selectedCompanyId && (
+                <div className="transition-all duration-300 animate-fade-in">
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-emerald-400" />
+                    Organization Plan Name
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={isLoadingSubscription ? 'Loading plan name...' : currentPlanName || 'No Active Plan'}
+                    className="w-full bg-[#080d15] border border-slate-700/80 text-slate-300 text-sm rounded-xl px-4 py-3.5 outline-none cursor-not-allowed select-all"
+                    placeholder="No active subscription plan"
+                  />
+                </div>
+              )}
+
 
               {/* Field 2: Current Subscription Details */}
               <div className="transition-all duration-300">
@@ -360,6 +449,112 @@ export default function SalesDashboardPage() {
               </li>
             </ul>
           </div>
+
+          {/* Available Plans Card */}
+          {selectedCompanyId && (
+            <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                <h3 className="text-white font-bold flex items-center gap-2 text-sm">
+                  <Briefcase className="w-4 h-4 text-sky-400" />
+                  Available Billing Plans
+                </h3>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">Country</span>
+                  <input
+                    type="text"
+                    maxLength={2}
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
+                    className="w-12 bg-[#080d15] border border-slate-700/80 text-white text-xs rounded px-2 py-1 outline-none text-center font-bold font-mono focus:border-sky-500 transition-all uppercase"
+                  />
+                </div>
+              </div>
+
+              {isLoadingPlans ? (
+                <div className="flex flex-col items-center justify-center py-8 gap-2.5">
+                  <div className="w-6 h-6 border-2 border-sky-500/30 border-t-sky-400 rounded-full animate-spin" />
+                  <span className="text-slate-500 text-xs">Loading plans...</span>
+                </div>
+              ) : plansError ? (
+                <div className="p-3.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl">
+                  {plansError}
+                </div>
+              ) : plans.length === 0 ? (
+                <div className="text-center text-slate-500 text-xs py-6">
+                  No plans found for country code "{countryCode}".
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
+                  {plans.map((plan: any) => (
+                    <div key={plan.planId} className="bg-[#080d15] border border-slate-800 rounded-xl p-4 space-y-2 relative overflow-hidden group hover:border-slate-700 transition-all">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-white font-bold text-xs block group-hover:text-sky-400 transition-colors">
+                            {plan.displayName || plan.planName}
+                          </span>
+                          <span className="text-[9px] font-mono text-slate-500 uppercase">
+                            ID: {plan.planId.substring(0, 8)}...
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-emerald-400 font-bold text-xs block">
+                            {plan.currency === 'INR' ? '₹' : plan.currency === 'USD' ? '$' : plan.currency}
+                            {Number(plan.billingValue).toLocaleString()}
+                          </span>
+                          <span className="text-[9px] text-slate-500 uppercase block font-semibold">
+                            {plan.billingType || 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {plan.planDesc && (
+                        <p className="text-[10px] text-slate-400 leading-relaxed">
+                          {plan.planDesc}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">
+                          Period: {plan.billingPeriod} Days
+                        </span>
+                        {plan.taxPercentage > 0 && (
+                          <span className="text-[9px] px-2 py-0.5 rounded bg-slate-800 text-emerald-400 font-medium">
+                            Tax: {plan.taxPercentage}%
+                          </span>
+                        )}
+                        {plan.isCustom && (
+                          <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold">
+                            Custom
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Display plan access modules */}
+                      {plan.planAccess && plan.planAccess.length > 0 && (
+                        <div className="pt-2 border-t border-slate-800/80">
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Features Access</span>
+                          <div className="flex flex-wrap gap-1">
+                            {plan.planAccess.map((access: any, idx: number) => (
+                              <span 
+                                key={idx} 
+                                className={`text-[8px] px-1.5 py-0.5 rounded font-mono ${
+                                  access.hasAccess || access.hasAccess === undefined 
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                }`}
+                              >
+                                {access.module}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
       </div>
@@ -427,6 +622,20 @@ export default function SalesDashboardPage() {
         }
         .animate-scale-up {
           animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255,255,255,0.02);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.10);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.20);
         }
       `}} />
     </div>

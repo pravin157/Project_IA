@@ -10,6 +10,8 @@ export interface CreateManualReceiptParams {
   country: string;
   planName: string;
   aecNumber: string;
+  name?: string;
+  email?: string;
 }
 
 export async function createManualReceiptApi(params: CreateManualReceiptParams): Promise<any> {
