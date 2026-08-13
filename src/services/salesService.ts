@@ -10,6 +10,7 @@ import { getOrganizationByAccountIdApi } from '@/api/sales/getOrganizationByAcco
 import { createManualReceiptApi, CreateManualReceiptParams } from '@/api/sales/createManualReceipt';
 import { getAllPlansApi } from '@/api/sales/getAllPlans';
 import { getSubscriptionPlanByIdApi } from '@/api/sales/getSubscriptionPlanById';
+import { updateSubscriptionApi, UpdateSubscriptionParams } from '@/api/sales/updateSubscription';
 
 export const salesService = {
   async getOrganizations(): Promise<any[]> {
@@ -22,6 +23,10 @@ export const salesService = {
 
   async extendSubscription(params: ExtendSubscriptionParams): Promise<any> {
     return extendSubscriptionApi(params);
+  },
+
+  async updateSubscription(params: UpdateSubscriptionParams): Promise<any> {
+    return updateSubscriptionApi(params);
   },
 
   async createDiscount(params: CreateDiscountParams): Promise<any> {
@@ -60,6 +65,7 @@ export const salesService = {
     return getSubscriptionPlanByIdApi(planId);
   }
 };
+
 
 
 
