@@ -13,7 +13,7 @@ client/                      # Browser-only code
   api/                       # Typed clients that call /api/* endpoints
   auth/                      # Browser authentication actions
 components/                  # Reusable React UI components
-server/                      # Server-only business and infrastructure code
+backend/                     # Server-only business and infrastructure code (inside src/backend)
   ai/                        # Gemini integration
   auth/                      # Tokens and password hashing
   database/                  # PostgreSQL pool and schema bootstrap
@@ -29,13 +29,13 @@ proxy.ts                     # Next.js request proxy
 
 ```text
 components / app pages  ->  client / shared
-app/api route handlers  ->  server / shared
-server                  ->  shared
+app/api route handlers  ->  backend / shared
+backend                 ->  shared
 ```
 
-`client` must not import `server`; doing so could expose secrets or Node-only
+`client` must not import `backend`; doing so could expose secrets or Node-only
 dependencies in browser bundles. Route handlers should stay thin: validate the
-request, call `server` code, and return an HTTP response.
+request, call `backend` code, and return an HTTP response.
 
 ## Coding standards
 
@@ -44,7 +44,7 @@ request, call `server` code, and return an HTTP response.
 - Keep React components focused on rendering and user interaction. Put remote
   requests in `client/api` and reusable formatting/types in `shared`.
 - Put database access, secrets, JWT logic, AI integrations, and security
-  controls only in `server`.
+  controls only in `backend`.
 - Name route handlers `route.ts`; do not move them outside `app/api`, because
   Next.js would no longer expose the endpoint.
 - Prefer named exports, explicit input/output types at module boundaries, and

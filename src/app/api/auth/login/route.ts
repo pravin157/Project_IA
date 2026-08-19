@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import pool, { initDb } from '@/server/database/pool';
-import { verifyPassword, hashPassword } from '@/server/auth/password';
+import pool, { initDb } from '@/backend/database/pool';
+import { verifyPassword, hashPassword } from '@/backend/auth/password';
 import {
   signAccessToken,
   signRefreshToken,
@@ -9,9 +9,9 @@ import {
   ACCESS_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
   REFRESH_TOKEN_MAX_AGE,
-} from '@/server/auth/tokens';
+} from '@/backend/auth/tokens';
 import crypto from 'crypto';
-import { rateLimit, getClientIp } from '@/server/security/rate-limit';
+import { rateLimit, getClientIp } from '@/backend/security/rate-limit';
 
 export async function POST(request: Request) {
   try {

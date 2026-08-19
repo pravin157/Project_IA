@@ -49,5 +49,5 @@ export function getClientIp(request: Request): string {
   const realIp = request.headers.get('x-real-ip');
   if (realIp) return realIp.trim();
 
-  return 'unknown';
+  return 'unknown'; 
 }

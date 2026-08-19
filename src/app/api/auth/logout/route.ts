@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import pool, { initDb } from '@/server/database/pool';
+import pool, { initDb } from '@/backend/database/pool';
 import {
   verifyRefreshToken,
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
-} from '@/server/auth/tokens';
+} from '@/backend/auth/tokens';
 
 /**
  * POST /api/auth/logout
