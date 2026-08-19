@@ -6,7 +6,7 @@ export async function getAllPlansApi(country: string): Promise<any[]> {
     eventType: 'GET_ALL_PLANS',
     country,
   });
-  
+
   const data = response.data as any;
   if (data && data.code === 'SUBSCRIPTION_PLANS_RETRIEVED') {
     return data.body;

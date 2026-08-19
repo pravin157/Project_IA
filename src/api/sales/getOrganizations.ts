@@ -11,5 +11,6 @@ export async function getOrganizationsApi(): Promise<any[]> {
   if (data && Array.isArray(data.body)) {
     return data.body;
   }
+  
   throw new Error(data?.message || 'Failed to retrieve organizations.');
 }

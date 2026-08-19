@@ -1,22 +1,13 @@
 import { NextResponse } from 'next/server';
 
-const PAYMASTER_ENDPOINT = process.env.PAYMASTER_ENDPOINT || 'https://paymaster.aecplayhouse.com';
+const PAYMASTER_ENDPOINT = process.env.PAYMASTER_ENDPOINT || 'http://localhost:9097';
 const PAYMASTER_APIKEY = process.env.AECAUTOPILOT_APIKEY || 'tR4hTjS954LxUWtRM720BN9yiUbcRUcSB5o9ZjWNVvXGiPFrLtDKRJvSoPDUIw6M';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     
-    const isLocalAdminEvent = 
-      body.eventType === 'CREATE_MANUAL_RECEIPT' || 
-      body.eventType === 'GENERATE_RECEIPT' ||
-      body.eventType === 'UPDATE_ORGANIZATION_SUBSCRIPTION' ||
-      body.eventType === 'EXTEND_SUBSCRIPTION_DATE';
-    const baseEndpoint = isLocalAdminEvent
-      ? (process.env.PAYMASTER_LOCAL_ENDPOINT || 'http://localhost:9097')
-      : PAYMASTER_ENDPOINT;
-
-    const adminUrl = `${baseEndpoint.replace(/\/+$/, '')}/admin-apis`;
+    const adminUrl = `${PAYMASTER_ENDPOINT.replace(/\/+$/, '')}/admin-apis`;
 
     const response = await fetch(adminUrl, {
       method: 'POST',

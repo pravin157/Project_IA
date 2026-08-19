@@ -13,7 +13,8 @@ export interface GenerateReceiptParams {
 
 export async function generateReceiptApi(params: GenerateReceiptParams): Promise<any> {
   const response = await apiClient.post(ENDPOINTS.SALES.PAYMASTER_ADMIN, {
-    eventType: 'GENERATE_RECEIPT',
+    eventType: 'CREATE_MANUAL_RECEIPT',
+    //eventType: 'GENERATE_RECEIPT',
     ...params,
   });
   
