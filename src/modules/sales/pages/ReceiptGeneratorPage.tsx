@@ -37,10 +37,7 @@ export interface ReceiptData {
 }
 
 const DEFAULT_PLANS = [
-  'All in One Plan',
-  'Standard Plan',
-  'Enterprise Plan',
-  'Custom Plan'
+  'All in One Plan'
 ];
 
 const DURATION_OPTIONS = [
@@ -121,7 +118,7 @@ export default function ReceiptGeneratorPage() {
 
     try {
       const response = await salesService.getOrganizationByAccountId(targetId.trim());
-      
+
       if (!response) {
         setOrgError('Organization API failure: No response received from server.');
         return;
@@ -386,16 +383,16 @@ export default function ReceiptGeneratorPage() {
     try {
       // Call CREATE_MANUAL_RECEIPT API
       const response = await salesService.createManualReceipt(receiptData);
-      
+
       if (!response) {
         throw new Error('Invalid receipt API response: No response received.');
       }
-      
+
       // Extract generated receipt ID if available, otherwise throw error
       if (!response.body || !response.body.receiptId) {
         throw new Error('Invalid receipt API response: Missing response.body.receiptId.');
       }
-      
+
       const receiptId = response.body.receiptId;
       const receiptUrl = `https://app.aecplayhouse.com/subscription/receipt?receiptId=${receiptId}`;
 
@@ -417,7 +414,7 @@ export default function ReceiptGeneratorPage() {
       saveHistory(updatedHistory);
 
       setIsSuccess(true);
-      
+
       // Only open the generated receipt in a new tab after it has been created successfully
       window.open(receiptUrl, "_blank");
 
@@ -437,7 +434,7 @@ export default function ReceiptGeneratorPage() {
     saveHistory(updated);
   };
 
-  const filteredHistory = receiptHistory.filter(item => 
+  const filteredHistory = receiptHistory.filter(item =>
     item.aecId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.countryCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -445,24 +442,24 @@ export default function ReceiptGeneratorPage() {
   );
 
   return (
-    <div className="w-full h-full p-4 sm:p-6 lg:p-10 overflow-y-auto">
+    <div className="w-full h-full p-4 sm:p-6 lg:p-10 overflow-y-auto bg-slate-50 text-slate-800">
 
       {/* Header Section */}
       <div className="max-w-5xl mx-auto mb-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase mb-3"
-              style={{ background: 'rgba(56,189,248,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
+              style={{ background: 'rgba(25,118,210,0.1)', color: '#1976D2', border: '1px solid rgba(25,118,210,0.2)' }}>
               <FileText className="w-3.5 h-3.5" />
               Sales Module &bull; Receipt Generator
             </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-2 flex items-center gap-3">
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-2 flex items-center gap-3">
               Receipt Generation
-              <span className="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold tracking-normal">
+              <span className="text-xs px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold tracking-normal">
                 Live Engine
               </span>
             </h1>
-            <p className="text-slate-400 text-sm sm:text-base">
+            <p className="text-slate-500 text-sm sm:text-base">
               Generate and archive official payment receipts with automatic currency symbol detection.
             </p>
           </div>
@@ -471,15 +468,15 @@ export default function ReceiptGeneratorPage() {
 
       {/* Form Container */}
       <div className="max-w-5xl mx-auto mb-12">
-        <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-sky-500/10 blur-3xl rounded-full pointer-events-none" />
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-[#1976D2]/10 blur-3xl rounded-full pointer-events-none" />
 
-          <div className="flex items-center justify-between pb-6 border-b border-slate-800/80 mb-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-sky-400" />
+          <div className="flex items-center justify-between pb-6 border-b border-slate-100 mb-6">
+            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#1976D2]" />
               Receipt Details Form
             </h2>
-            <span className="text-xs text-slate-500 font-medium">All fields required</span>
+            <span className="text-xs text-slate-400 font-medium">All fields required</span>
           </div>
 
           <form onSubmit={handleGenerateReceipt} className="space-y-5">
@@ -487,8 +484,8 @@ export default function ReceiptGeneratorPage() {
 
               {/* 1. AEC ID */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-sky-400" />
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-[#1976D2]" />
                   AEC ID
                 </label>
                 <div className="flex gap-2">
@@ -499,18 +496,18 @@ export default function ReceiptGeneratorPage() {
                     onChange={handleChange}
                     required
                     placeholder="e.g. AEC-3078"
-                    className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-600 font-mono"
+                    className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/20 transition-all placeholder:text-slate-400 font-mono shadow-sm"
                   />
                   <button
                     type="button"
                     onClick={() => handleVerifyOrganization()}
                     disabled={isLoadingOrg || !formData.aecId.trim()}
-                    className="px-4 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-xs font-semibold text-white rounded-xl transition-all flex items-center gap-1.5 shrink-0 border border-slate-700"
+                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xs font-bold text-slate-700 rounded-xl transition-all flex items-center gap-1.5 shrink-0 border border-slate-200"
                   >
                     {isLoadingOrg ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-400" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#1976D2]" />
                     ) : (
-                      <Search className="w-3.5 h-3.5 text-sky-400" />
+                      <Search className="w-3.5 h-3.5 text-[#1976D2]" />
                     )}
                     Verify
                   </button>
@@ -518,8 +515,8 @@ export default function ReceiptGeneratorPage() {
 
                 {/* Status messages for Organization API */}
                 {isLoadingOrg && (
-                  <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5 animate-fade-in">
-                    <Loader2 className="w-3 h-3 animate-spin text-sky-400" />
+                  <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5 animate-fade-in">
+                    <Loader2 className="w-3 h-3 animate-spin text-[#1976D2]" />
                     Verifying organization ID...
                   </p>
                 )}
@@ -533,30 +530,30 @@ export default function ReceiptGeneratorPage() {
 
                 {orgSuccess && organizations.length > 0 && (
                   <div className="mt-3 space-y-2.5 animate-fade-in">
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1">
-                      <p className="text-[11px] text-emerald-400 flex items-center gap-1.5 font-semibold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
+                      <p className="text-[11px] text-emerald-700 flex items-center gap-1.5 font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                         Organization Verified
                       </p>
-                      <div className="text-[10px] text-slate-400 font-mono space-y-0.5">
+                      <div className="text-[10px] text-slate-600 font-mono space-y-0.5">
                         {organizations[0]?.organizationName && (
-                          <div>Name: <span className="text-slate-200 font-semibold">{organizations[0]?.organizationName}</span></div>
+                          <div>Name: <span className="text-slate-900 font-bold">{organizations[0]?.organizationName}</span></div>
                         )}
-                        <div>Account ID: <span className="text-slate-200">{organizations[0]?.accountId}</span></div>
-                        <div>Org ID: <span className="text-slate-200">{organizations[0]?.organizationId}</span></div>
+                        <div>Account ID: <span className="text-slate-800">{organizations[0]?.accountId}</span></div>
+                        <div>Org ID: <span className="text-slate-800">{organizations[0]?.organizationId}</span></div>
                       </div>
                     </div>
 
-                    <div className="p-3.5 bg-[#080d15] border border-slate-700/80 rounded-xl space-y-2 shadow-inner">
-                      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-sky-400" />
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-[#1976D2]" />
                         Select Organization for Receipt
                       </label>
                       <select
                         value={selectedOrganizationId}
                         onChange={(e) => setSelectedOrganizationId(e.target.value)}
                         required
-                        className="w-full bg-[#0b1120] border border-slate-700/80 text-white text-xs rounded-lg px-3 py-2.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-mono cursor-pointer"
+                        className="w-full bg-white border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-2.5 outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/20 transition-all font-mono cursor-pointer shadow-sm"
                       >
                         <option value="" disabled>-- Select Organization --</option>
                         {organizations.map((org) => (
@@ -572,8 +569,8 @@ export default function ReceiptGeneratorPage() {
 
               {/* 2. Date and Time */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-purple-400" />
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#1976D2]" />
                   Date & Time
                 </label>
                 <input
@@ -582,18 +579,18 @@ export default function ReceiptGeneratorPage() {
                   value={formData.dateTime}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all text-slate-200"
+                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/20 transition-all shadow-sm"
                 />
               </div>
 
               {/* 3. Country Code Dropdown */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-rose-400" />
+                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-[#1976D2]" />
                     Country Code
                   </label>
-                  <span className="text-[10px] text-slate-500 font-bold uppercase">Dropdown</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">Dropdown</span>
                 </div>
                 <div className="relative">
                   <select
@@ -601,27 +598,27 @@ export default function ReceiptGeneratorPage() {
                     value={formData.countryCode}
                     onChange={handleChange}
                     required
-                    className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all cursor-pointer font-mono"
+                    className="w-full appearance-none bg-white border border-slate-300 text-slate-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/20 transition-all cursor-pointer font-mono shadow-sm"
                   >
                     {countryOptions.map((opt) => (
-                      <option key={opt.code} value={opt.code} className="bg-[#0b1120] text-white">
+                      <option key={opt.code} value={opt.code} className="bg-white text-slate-900">
                         {opt.name}
                       </option>
                     ))}
                   </select>
                   {/* Custom Arrow / Loading indicator */}
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none gap-2 text-slate-500">
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none gap-2 text-slate-400">
                     {isLoadingGateway ? (
-                      <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />
+                      <Loader2 className="w-4 h-4 text-[#1976D2] animate-spin" />
                     ) : (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                     )}
                   </div>
                 </div>
                 {countryName && (
-                  <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                  <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
                     <span>Detected Country:</span>
-                    <strong className="text-slate-200">{countryName}</strong>
+                    <strong className="text-slate-900">{countryName}</strong>
                   </p>
                 )}
               </div>
@@ -630,16 +627,16 @@ export default function ReceiptGeneratorPage() {
               {/* 4. Amount with Dynamic Currency Symbol */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-emerald-400" />
+                  <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-[#1976D2]" />
                     Amount ({currencySymbol})
                   </label>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                  <span className="text-[10px] text-[#1976D2] font-mono font-bold bg-[#1976D2]/10 px-1.5 py-0.5 rounded border border-[#1976D2]/20">
                     {currencyCode} ({currencySymbol})
                   </span>
                 </div>
-                <div className="w-full bg-[#080d15] border border-slate-700/80 rounded-xl px-4 py-3 flex items-center gap-2.5 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
-                  <span className="text-emerald-400 font-bold text-sm shrink-0 select-none font-mono">
+                <div className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 flex items-center gap-2.5 focus-within:border-[#1976D2] focus-within:ring-2 focus-within:ring-[#1976D2]/20 transition-all shadow-sm">
+                  <span className="text-[#1976D2] font-bold text-sm shrink-0 select-none font-mono">
                     {currencySymbol}
                   </span>
                   <input
@@ -651,15 +648,15 @@ export default function ReceiptGeneratorPage() {
                     min="0"
                     step="0.01"
                     placeholder="e.g. 2499.00"
-                    className="w-full bg-transparent text-white text-sm outline-none placeholder:text-slate-600 font-mono p-0 m-0 border-none focus:outline-none focus:ring-0"
+                    className="w-full bg-transparent text-slate-900 text-sm outline-none placeholder:text-slate-400 font-mono p-0 m-0 border-none focus:outline-none focus:ring-0"
                   />
                 </div>
               </div>
 
               {/* 5. Duration Dropdown */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-400" />
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#1976D2]" />
                   Duration
                 </label>
                 <select
@@ -667,10 +664,10 @@ export default function ReceiptGeneratorPage() {
                   value={formData.duration}
                   onChange={handleChange}
                   required
-                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all cursor-pointer"
+                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/20 transition-all cursor-pointer shadow-sm"
                 >
                   {DURATION_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt} className="bg-[#0b1120] text-white">
+                    <option key={opt} value={opt} className="bg-white text-slate-900">
                       {opt}
                     </option>
                   ))}
@@ -679,8 +676,8 @@ export default function ReceiptGeneratorPage() {
 
               {/* 6. Number of Users */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-indigo-400" />
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#1976D2]" />
                   Number of Users
                 </label>
                 <input
@@ -691,7 +688,7 @@ export default function ReceiptGeneratorPage() {
                   required
                   min="1"
                   placeholder="e.g. 10"
-                  className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600 font-mono"
+                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/20 transition-all placeholder:text-slate-400 font-mono shadow-sm"
                 />
               </div>
 
@@ -699,8 +696,8 @@ export default function ReceiptGeneratorPage() {
 
             {/* 7. Plan Name Dropdown */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-teal-400" />
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-[#1976D2]" />
                 Plan Name
               </label>
               <select
@@ -708,39 +705,39 @@ export default function ReceiptGeneratorPage() {
                 value={formData.planName}
                 onChange={handleChange}
                 required
-                className="w-full bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all cursor-pointer font-medium"
+                className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-[#1976D2] focus:ring-2 focus:ring-[#1976D2]/20 transition-all cursor-pointer font-medium shadow-sm"
               >
                 {DEFAULT_PLANS.map((plan) => (
-                  <option key={plan} value={plan} className="bg-[#0b1120] text-white">
+                  <option key={plan} value={plan} className="bg-white text-slate-900">
                     {plan}
                   </option>
                 ))}
               </select>
               <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-                Select subscriber entitlement plan. Default is <span className="text-teal-300 font-semibold">All in One Plan</span>.
+                <ShieldCheck className="w-3.5 h-3.5 text-[#1976D2]" />
+                Select subscriber entitlement plan. Default is <span className="text-[#1976D2] font-bold">All in One Plan</span>.
               </p>
             </div>
 
             {/* Submit & Error display */}
-            <div className="pt-4 border-t border-slate-800/80 space-y-4">
+            <div className="pt-4 border-t border-slate-100 space-y-4">
               {error && (
-                <div className="w-full p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex gap-2 items-center">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
+                <div className="w-full p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex gap-2 items-center">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                   <span>{error}</span>
                 </div>
               )}
 
               {isSuccess ? (
-                <div className="w-full py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-5 h-5" />
+                <div className="w-full py-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold text-sm flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                   Receipt Generated & Saved to History!
                 </div>
               ) : (
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-400 hover:to-teal-400 active:scale-[0.98] text-white font-bold text-sm transition-all duration-200 shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-xl bg-[#1976D2] hover:bg-[#1565C0] active:scale-[0.98] text-white font-bold text-sm transition-all duration-200 shadow-md shadow-[#1976D2]/25 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -761,27 +758,27 @@ export default function ReceiptGeneratorPage() {
 
       {/* Generated Receipt History Table */}
       <div className="max-w-5xl mx-auto">
-        <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-2xl">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-teal-400" />
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#1976D2]" />
                 Receipt Archive & History
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 View and manage previously generated sales receipts with currency symbols.
               </p>
             </div>
 
             {/* Search input */}
             <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search AEC ID, Plan..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#080d15] border border-slate-700/80 text-white text-xs rounded-xl pl-9 pr-4 py-2 outline-none focus:border-teal-500 transition-all placeholder:text-slate-600"
+                className="w-full bg-white border border-slate-300 text-slate-900 text-xs rounded-xl pl-9 pr-4 py-2 outline-none focus:border-[#1976D2] transition-all placeholder:text-slate-400 shadow-sm"
               />
             </div>
           </div>
@@ -790,7 +787,7 @@ export default function ReceiptGeneratorPage() {
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider font-semibold bg-[#080d15]/50">
+                <tr className="border-b border-slate-200 text-slate-500 uppercase text-[10px] tracking-wider font-semibold bg-slate-50">
                   <th className="py-3 px-4">Receipt ID</th>
                   <th className="py-3 px-4">AEC ID</th>
                   <th className="py-3 px-4">Date & Time</th>
@@ -802,48 +799,48 @@ export default function ReceiptGeneratorPage() {
                   <th className="py-3 px-4 text-center">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100">
                 {filteredHistory.length > 0 ? (
                   filteredHistory.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-bold text-sky-400">
-                        <a 
-                          href={`https://app.aecplayhouse.com/subscription/receipt?receiptId=${item.id}`} 
-                          target="_blank" 
+                    <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#1976D2]">
+                        <a
+                          href={`https://app.aecplayhouse.com/subscription/receipt?receiptId=${item.id}`}
+                          target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:underline hover:text-sky-300"
+                          className="hover:underline"
                         >
                           {item.id}
                         </a>
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-white font-medium">
+                      <td className="py-3.5 px-4 font-mono text-slate-900 font-bold">
                         {item.aecId}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300">
+                      <td className="py-3.5 px-4 text-slate-600">
                         {item.dateTime ? new Date(item.dateTime).toLocaleString() : '—'}
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-teal-300">
+                      <td className="py-3.5 px-4 font-semibold text-slate-800">
                         {item.planName}
                       </td>
-                      <td className="py-3.5 px-4 text-amber-400">
+                      <td className="py-3.5 px-4 text-amber-700 font-medium">
                         {item.duration}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300">
+                      <td className="py-3.5 px-4 text-slate-600">
                         {item.numberOfUsers}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700 font-mono text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[10px] font-bold">
                           {item.countryCode}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-400 text-right">
+                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-700 text-right">
                         {item.currencySymbol || '$'}{Number(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <button
                           onClick={() => handleDeleteHistoryItem(item.id)}
                           title="Delete Receipt"
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -852,7 +849,7 @@ export default function ReceiptGeneratorPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-slate-500">
+                    <td colSpan={9} className="py-8 text-center text-slate-400">
                       No receipts found matching search.
                     </td>
                   </tr>
