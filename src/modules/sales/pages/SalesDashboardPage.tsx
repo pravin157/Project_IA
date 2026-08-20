@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Building2,
   Calendar,
@@ -42,10 +42,43 @@ export default function SalesDashboardPage() {
   const [plansError, setPlansError] = useState<string | null>(null);
   const [countryCode, setCountryCode] = useState<string>('IN');
 
+  const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+  const [orgSearchQuery, setOrgSearchQuery] = useState('');
+  const orgDropdownRef = useRef<HTMLDivElement>(null);
+  const orgInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (orgDropdownRef.current && !orgDropdownRef.current.contains(event.target as Node)) {
+        setIsOrgDropdownOpen(false);
+        setOrgSearchQuery('');
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const filteredOrgs = useMemo(() => {
+    if (!orgSearchQuery.trim()) return organizations;
+    const query = orgSearchQuery.toLowerCase();
+    return organizations.filter(org =>
+      (org.organizationName || '').toLowerCase().includes(query) ||
+      (org.accountId || '').toLowerCase().includes(query) ||
+      (org.organizationId || '').toLowerCase().includes(query)
+    );
+  }, [organizations, orgSearchQuery]);
+
   const selectedCompanyName = useMemo(() => {
     const org = organizations.find(o => o.organizationId === selectedCompanyId);
     return org ? org.organizationName : '';
   }, [selectedCompanyId, organizations]);
+
+  // Combobox display value: while typing show query, otherwise show selected name (or empty for placeholder)
+  const orgInputDisplayValue = isOrgDropdownOpen
+    ? orgSearchQuery
+    : (selectedCompanyName || '');
 
   // Fetch all organizations when the page loads
   useEffect(() => {
@@ -326,7 +359,7 @@ export default function SalesDashboardPage() {
 
         {/* Form Column */}
         <div className="lg:col-span-3">
-          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden transition-all duration-300">
 
             {/* Background Glow */}
             <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-sky-500/10 blur-3xl rounded-full pointer-events-none" />
@@ -339,28 +372,74 @@ export default function SalesDashboardPage() {
                   <Building2 className="w-4 h-4 text-sky-400" />
                   Organization
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedCompanyId}
-                    onChange={(e) => handleSelectCompany(e.target.value)}
-                    required
-                    className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
+                <div className="relative" ref={orgDropdownRef}>
+                  {/* Combobox: single input that is both the trigger and the search field */}
+                  <input
+                    ref={orgInputRef}
+                    type="text"
+                    role="combobox"
+                    aria-expanded={isOrgDropdownOpen}
+                    aria-autocomplete="list"
+                    autoComplete="off"
                     disabled={isLoadingOrgs}
-                  >
-                    <option value="" disabled>
-                      {isLoadingOrgs ? 'Loading organizations...' : 'Select an organization...'}
-                    </option>
-                    {organizations.map(company => (
-                      <option key={company.organizationId} value={company.organizationId}>
-                        {company.organizationName || `Unnamed (${company.organizationId.substring(0, 8)})`}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    placeholder={isLoadingOrgs ? 'Loading organizations...' : 'Select an organization...'}
+                    value={orgInputDisplayValue}
+                    onChange={(e) => {
+                      setOrgSearchQuery(e.target.value);
+                      if (!isOrgDropdownOpen) setIsOrgDropdownOpen(true);
+                    }}
+                    onFocus={() => {
+                      setIsOrgDropdownOpen(true);
+                      // Clear display so user types into an empty field
+                      setOrgSearchQuery('');
+                    }}
+                    className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl pl-4 pr-10 py-3.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  />
+
+                  {/* Chevron icon */}
+                  <div className="absolute top-3.5 right-4 flex items-center pointer-events-none text-slate-500">
+                    <svg className={`w-4 h-4 transition-transform duration-200 ${isOrgDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                   </div>
+
+                  {/* Dropdown list - rendered in-flow so outer container expands naturally */}
+                  {isOrgDropdownOpen && (
+                    <div className="mt-2 w-full bg-[#080d15] border border-slate-700/80 rounded-xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden custom-scrollbar animate-scale-up">
+                      <div className="py-1">
+                        {filteredOrgs.length === 0 ? (
+                          <div className="px-4 py-3 text-xs text-slate-500">No organizations found</div>
+                        ) : (
+                          filteredOrgs.map(company => (
+                            <button
+                              key={company.organizationId}
+                              type="button"
+                              onMouseDown={(e) => {
+                                // Use onMouseDown so the selection fires before onBlur closes the dropdown
+                                e.preventDefault();
+                                handleSelectCompany(company.organizationId);
+                                setIsOrgDropdownOpen(false);
+                                setOrgSearchQuery('');
+                                orgInputRef.current?.blur();
+                              }}
+                              className={`w-full text-left px-4 py-2.5 text-xs transition-colors hover:bg-slate-800/80 flex flex-col min-w-0 ${
+                                selectedCompanyId === company.organizationId ? 'bg-sky-500/10 text-sky-400 font-semibold' : 'text-slate-300'
+                              }`}
+                            >
+                              <span className="truncate w-full block">
+                                {company.organizationName || `Unnamed (${company.organizationId.substring(0, 8)})`}
+                              </span>
+                              {company.accountId && (
+                                <span className="text-[10px] text-slate-500 font-mono mt-0.5 truncate w-full block">
+                                  Account ID: {company.accountId}
+                                </span>
+                              )}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -462,9 +541,8 @@ export default function SalesDashboardPage() {
                       value={allocatedLicenses}
                       onChange={(e) => setAllocatedLicenses(e.target.value)}
                       placeholder="Enter license count"
-                      className={`w-full bg-[#080d15] border ${
-                        isLicenseCountInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500'
-                      } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 transition-all`}
+                      className={`w-full bg-[#080d15] border ${isLicenseCountInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500'
+                        } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 transition-all`}
                     />
                     <div className="flex items-center justify-between text-xs mt-2 px-1">
                       <span className="text-slate-400">
@@ -499,9 +577,8 @@ export default function SalesDashboardPage() {
                         value={extensionDate}
                         min={getMinExtensionDate(currentSubscription.subscriptionValidTill)}
                         onChange={(e) => setExtensionDate(e.target.value)}
-                        className={`w-full bg-[#080d15] border ${
-                          isExtensionDateInvalid ? 'border-red-500 focus:border-red-500' : 'border-slate-700/80 focus:border-purple-500'
-                        } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 focus:ring-purple-500 transition-all custom-calendar-icon`}
+                        className={`w-full bg-[#080d15] border ${isExtensionDateInvalid ? 'border-red-500 focus:border-red-500' : 'border-slate-700/80 focus:border-purple-500'
+                          } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 focus:ring-purple-500 transition-all custom-calendar-icon`}
                       />
                       {isExtensionDateInvalid && (
                         <p className="text-red-400 text-xs font-medium mt-1.5 px-1 flex items-center gap-1">
@@ -513,12 +590,12 @@ export default function SalesDashboardPage() {
                   </div>
 
                   {/* Read-Only Subscription Metadata (Auto-Debit) */}
-                  <div className="bg-[#080d15] border border-slate-800/80 rounded-xl p-4 text-xs flex justify-between items-center">
+                  {/* <div className="bg-[#080d15] border border-slate-800/80 rounded-xl p-4 text-xs flex justify-between items-center">
                     <span className="text-slate-400 font-medium">Recurring Auto Debit</span>
                     <span className="text-slate-200 font-semibold px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700">
                       {(currentSubscription.isRecurringAutoDebit ?? currentSubscription.recurringAutoDebit) ? 'Enabled' : 'Disabled'}
                     </span>
-                  </div>
+                  </div> */}
 
                 </div>
               ) : (
@@ -610,7 +687,7 @@ export default function SalesDashboardPage() {
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-[#0b1120] border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl relative animate-scale-up">
-            <button 
+            <button
               onClick={() => setShowSuccessModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
             >
