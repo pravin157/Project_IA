@@ -112,12 +112,12 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#080d15] text-slate-300 font-sans overflow-hidden selection:bg-sky-500 selection:text-white">
+    <div className="flex h-screen w-full bg-slate-50 text-slate-800 font-sans overflow-hidden selection:bg-[#1976D2] selection:text-white">
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -125,23 +125,23 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50 w-64 flex flex-col
-        bg-[#0b1120] border-r border-slate-800/60 shadow-2xl md:shadow-none
+        bg-white border-r border-slate-200/80 shadow-lg md:shadow-none
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Sidebar Header */}
-        <div className="h-16 shrink-0 flex items-center px-6 border-b border-slate-800/60 bg-[#080d15]/50">
+        <div className="h-16 shrink-0 flex items-center px-6 border-b border-slate-100 bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-sky-500 to-teal-500 shadow-lg shadow-sky-500/20">
-              <LayoutGrid className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#1976D2] text-white shadow-md shadow-[#1976D2]/25">
+              <LayoutGrid className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-sm font-black tracking-tight text-white leading-none">IntoAEC Admin</h1>
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Portal</p>
+              <h1 className="text-sm font-extrabold tracking-tight text-slate-900 leading-none">IntoAEC Admin</h1>
+              <p className="text-[10px] text-[#1976D2] font-bold uppercase tracking-widest mt-1">Portal</p>
             </div>
           </div>
           <button
-            className="ml-auto md:hidden p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+            className="ml-auto md:hidden p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <X className="w-5 h-5" />
@@ -150,10 +150,10 @@ export default function DashboardLayout({
 
         {/* Sidebar Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
-          <div className="mb-4 px-2 text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+          <div className="mb-3 px-2 text-[10px] font-extrabold tracking-widest text-slate-400 uppercase">
             Modules
           </div>
-          <ul className="space-y-2">
+          <ul className="space-y-1.5">
             {menuItems.map((item) => {
               const isExpanded = expandedMenus[item.title];
               const hasSubmenu = item.submenu !== undefined;
@@ -163,18 +163,18 @@ export default function DashboardLayout({
                   <button
                     onClick={() => toggleMenu(item.title)}
                     className={`
-                      w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
-                      ${isExpanded ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-sm' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border border-transparent'}
+                      w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200
+                      ${isExpanded ? 'bg-[#1976D2]/10 text-[#1976D2]' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}
                     `}
                   >
                     <div className="flex items-center gap-3">
-                      <item.icon className="w-4 h-4" />
+                      <item.icon className={`w-4 h-4 ${isExpanded ? 'text-[#1976D2]' : 'text-slate-400'}`} />
                       <span>{item.title}</span>
                     </div>
                     {isExpanded ? (
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-4 h-4 text-[#1976D2]" />
                     ) : (
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
                     )}
                   </button>
 
@@ -182,10 +182,10 @@ export default function DashboardLayout({
                   <div
                     className={`
                       overflow-hidden transition-all duration-300 ease-in-out
-                      ${isExpanded ? 'max-h-60 opacity-100 mt-1.5' : 'max-h-0 opacity-0'}
+                      ${isExpanded ? 'max-h-60 opacity-100 mt-1' : 'max-h-0 opacity-0'}
                     `}
                   >
-                    <ul className="pl-10 pr-2 py-1 space-y-1 relative before:absolute before:inset-y-0 before:left-5 before:w-px before:bg-slate-800">
+                    <ul className="pl-9 pr-2 py-1 space-y-1 relative before:absolute before:inset-y-0 before:left-5 before:w-px before:bg-slate-200">
                       {item.submenu && item.submenu.length > 0 ? (
                         item.submenu.map((sub) => {
                           const isActive = pathname === sub.path;
@@ -195,10 +195,10 @@ export default function DashboardLayout({
                                 href={sub.path}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={`
-                                  block px-3 py-2 rounded-md text-xs font-medium transition-colors relative z-10
+                                  block px-3 py-2 rounded-lg text-xs font-semibold transition-all relative z-10
                                   ${isActive
-                                    ? 'text-white bg-slate-800/80 shadow-sm border border-slate-700/50 before:absolute before:-left-[21px] before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-5 before:bg-sky-400 before:rounded-r-full'
-                                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'}
+                                    ? 'text-white bg-[#1976D2] shadow-sm shadow-[#1976D2]/25'
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}
                                 `}
                               >
                                 {sub.title}
@@ -208,7 +208,7 @@ export default function DashboardLayout({
                         })
                       ) : (
                         <li className="relative">
-                          <span className="block px-3 py-2 text-[11px] font-medium text-slate-600 italic">
+                          <span className="block px-3 py-2 text-[11px] font-medium text-slate-400 italic">
                             Coming soon
                           </span>
                         </li>
@@ -222,10 +222,10 @@ export default function DashboardLayout({
         </nav>
 
         {/* Sidebar Footer (Logout) */}
-        <div className="p-4 shrink-0 border-t border-slate-800/60 bg-[#080d15]/50">
+        <div className="p-4 shrink-0 border-t border-slate-100 bg-white">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all duration-200"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-all duration-200"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -234,18 +234,18 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#080d15]">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50">
         {/* Mobile Header */}
-        <header className="md:hidden shrink-0 h-16 flex items-center justify-between px-4 border-b border-slate-800/60 bg-[#0b1120] shadow-sm relative z-30">
+        <header className="md:hidden shrink-0 h-16 flex items-center justify-between px-4 border-b border-slate-200 bg-white shadow-sm relative z-30">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br from-sky-500 to-teal-500">
-              <LayoutGrid className="w-3.5 h-3.5 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#1976D2] text-white">
+              <LayoutGrid className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-sm font-black tracking-tight text-white">Admin Portal</h1>
+            <h1 className="text-sm font-extrabold tracking-tight text-slate-900">Admin Portal</h1>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+            className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>

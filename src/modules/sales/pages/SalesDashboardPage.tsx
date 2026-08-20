@@ -337,19 +337,18 @@ export default function SalesDashboardPage() {
   };
 
   return (
-    <div className="w-full h-full p-6 sm:p-8 lg:p-12 overflow-y-auto">
+    <div className="w-full h-full p-6 sm:p-8 lg:p-12 overflow-y-auto bg-slate-50 text-[#000000]">
 
       {/* Header Section */}
       <div className="max-w-4xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase mb-4"
-          style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}>
-          <Briefcase className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase mb-4 bg-white border border-[#E5E7EB] text-[#000000] shadow-sm">
+          <Briefcase className="w-3.5 h-3.5 text-[#1D6FD8]" />
           Sales Operations
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#000000] tracking-tight mb-2">
           Subscription Management
         </h1>
-        <p className="text-slate-400 text-sm sm:text-base">
+        <p className="text-[#000000] text-sm sm:text-base">
           Manage client subscription plans, license allocations, payment tenures, and billing expiry dates.
         </p>
       </div>
@@ -359,17 +358,14 @@ export default function SalesDashboardPage() {
 
         {/* Form Column */}
         <div className="lg:col-span-3">
-          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden transition-all duration-300">
-
-            {/* Background Glow */}
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-sky-500/10 blur-3xl rounded-full pointer-events-none" />
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-6 sm:p-8 shadow-sm relative overflow-hidden transition-all duration-300">
 
             <form onSubmit={handleSubmit} className="relative z-10 space-y-6">
 
               {/* Field 1: Organization Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-sky-400" />
+                <label className="block text-xs font-semibold text-[#000000] uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-[#1D6FD8]" />
                   Organization
                 </label>
                 <div className="relative" ref={orgDropdownRef}>
@@ -393,11 +389,11 @@ export default function SalesDashboardPage() {
                       // Clear display so user types into an empty field
                       setOrgSearchQuery('');
                     }}
-                    className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl pl-4 pr-10 py-3.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all placeholder:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full appearance-none bg-white border border-[#E5E7EB] text-[#000000] text-sm rounded-xl pl-4 pr-10 py-3.5 outline-none focus:border-[#1D6FD8] focus:ring-2 focus:ring-[#1D6FD8]/20 transition-all placeholder:text-[#000000]/60 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
                   />
 
                   {/* Chevron icon */}
-                  <div className="absolute top-3.5 right-4 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute top-3.5 right-4 flex items-center pointer-events-none text-[#1D6FD8]">
                     <svg className={`w-4 h-4 transition-transform duration-200 ${isOrgDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
@@ -405,10 +401,10 @@ export default function SalesDashboardPage() {
 
                   {/* Dropdown list - rendered in-flow so outer container expands naturally */}
                   {isOrgDropdownOpen && (
-                    <div className="mt-2 w-full bg-[#080d15] border border-slate-700/80 rounded-xl shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden custom-scrollbar animate-scale-up">
+                    <div className="mt-2 w-full bg-white border border-[#E5E7EB] rounded-xl shadow-xl max-h-64 overflow-y-auto overflow-x-hidden custom-scrollbar animate-scale-up z-20">
                       <div className="py-1">
                         {filteredOrgs.length === 0 ? (
-                          <div className="px-4 py-3 text-xs text-slate-500">No organizations found</div>
+                          <div className="px-4 py-3 text-xs text-[#000000]">No organizations found</div>
                         ) : (
                           filteredOrgs.map(company => (
                             <button
@@ -422,15 +418,14 @@ export default function SalesDashboardPage() {
                                 setOrgSearchQuery('');
                                 orgInputRef.current?.blur();
                               }}
-                              className={`w-full text-left px-4 py-2.5 text-xs transition-colors hover:bg-slate-800/80 flex flex-col min-w-0 ${
-                                selectedCompanyId === company.organizationId ? 'bg-sky-500/10 text-sky-400 font-semibold' : 'text-slate-300'
-                              }`}
+                              className={`w-full text-left px-4 py-2.5 text-xs transition-colors hover:bg-slate-50 flex flex-col min-w-0 ${selectedCompanyId === company.organizationId ? 'bg-[#1D6FD8]/10 text-[#1D6FD8] font-bold' : 'text-[#000000]'
+                                }`}
                             >
                               <span className="truncate w-full block">
                                 {company.organizationName || `Unnamed (${company.organizationId.substring(0, 8)})`}
                               </span>
                               {company.accountId && (
-                                <span className="text-[10px] text-slate-500 font-mono mt-0.5 truncate w-full block">
+                                <span className="text-[10px] text-[#000000]/70 font-mono mt-0.5 truncate w-full block">
                                   Account ID: {company.accountId}
                                 </span>
                               )}
@@ -445,23 +440,23 @@ export default function SalesDashboardPage() {
 
               {/* Subscription Form Fields (Visible when org is selected) */}
               {isLoadingSubscription ? (
-                <div className="bg-[#080d15] border border-slate-700/80 rounded-xl p-8 flex flex-col items-center justify-center gap-3">
-                  <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
-                  <span className="text-slate-400 text-xs font-medium">Fetching organization subscription details...</span>
+                <div className="bg-white border border-[#E5E7EB] rounded-xl p-8 flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 border-2 border-[#1D6FD8]/30 border-t-[#1D6FD8] rounded-full animate-spin" />
+                  <span className="text-[#000000] text-xs font-medium">Fetching organization subscription details...</span>
                 </div>
               ) : selectedCompanyId && !currentSubscription ? (
-                <div className="bg-[#080d15] border border-red-500/20 rounded-xl p-6 text-center text-slate-400 text-sm">
-                  <CreditCard className="w-8 h-8 text-red-400 mx-auto mb-2 opacity-60" />
-                  <p className="font-semibold text-slate-300">No Subscription Found</p>
-                  <p className="text-xs text-slate-500 mt-1">This organization does not have an active subscription record.</p>
+                <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 text-center text-[#000000] text-sm">
+                  <CreditCard className="w-8 h-8 text-[#1D6FD8] mx-auto mb-2 opacity-80" />
+                  <p className="font-semibold text-[#000000]">No Subscription Found</p>
+                  <p className="text-xs text-[#000000] mt-1">This organization does not have an active subscription record.</p>
                 </div>
               ) : currentSubscription ? (
                 <div className="space-y-6 animate-fade-in">
 
                   {/* Field 2: Organization Plan Dropdown */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-emerald-400" />
+                    <label className="block text-xs font-semibold text-[#000000] uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-[#1D6FD8]" />
                       Organization Plan
                     </label>
                     <div className="relative">
@@ -469,7 +464,7 @@ export default function SalesDashboardPage() {
                         value={selectedPlanId}
                         onChange={(e) => handlePlanChange(e.target.value)}
                         disabled={isLoadingPlans || plans.length === 0}
-                        className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all disabled:opacity-75"
+                        className="w-full appearance-none bg-white border border-[#E5E7EB] text-[#000000] text-sm rounded-xl px-4 py-3.5 outline-none focus:border-[#1D6FD8] focus:ring-2 focus:ring-[#1D6FD8]/20 transition-all disabled:opacity-75 shadow-sm"
                       >
                         {isLoadingPlans ? (
                           <option value="">Loading plans...</option>
@@ -492,7 +487,7 @@ export default function SalesDashboardPage() {
                           </>
                         )}
                       </select>
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
+                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-[#1D6FD8]">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
@@ -502,8 +497,8 @@ export default function SalesDashboardPage() {
 
                   {/* Field 3: Payment Tenure Dropdown */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-amber-400" />
+                    <label className="block text-xs font-semibold text-[#000000] uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#1D6FD8]" />
                       Payment Tenure
                     </label>
                     <div className="relative">
@@ -511,7 +506,7 @@ export default function SalesDashboardPage() {
                         value={paymentTenure}
                         onChange={(e) => setPaymentTenure(e.target.value)}
                         disabled={isLoadingSubscription || !currentSubscription}
-                        className="w-full appearance-none bg-[#080d15] border border-slate-700/80 text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all font-semibold uppercase"
+                        className="w-full appearance-none bg-white border border-[#E5E7EB] text-[#000000] text-sm rounded-xl px-4 py-3.5 outline-none focus:border-[#1D6FD8] focus:ring-2 focus:ring-[#1D6FD8]/20 transition-all font-semibold uppercase shadow-sm"
                       >
                         <option value="MONTHLY">Monthly</option>
                         <option value="QUARTERLY">Quarterly</option>
@@ -521,7 +516,7 @@ export default function SalesDashboardPage() {
                           <option value={paymentTenure}>{paymentTenure}</option>
                         )}
                       </select>
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
+                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-[#1D6FD8]">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
@@ -531,8 +526,8 @@ export default function SalesDashboardPage() {
 
                   {/* Field 4: Allocated Licenses */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-blue-400" />
+                    <label className="block text-xs font-semibold text-[#000000] uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#1D6FD8]" />
                       Allocated Licenses
                     </label>
                     <input
@@ -541,16 +536,16 @@ export default function SalesDashboardPage() {
                       value={allocatedLicenses}
                       onChange={(e) => setAllocatedLicenses(e.target.value)}
                       placeholder="Enter license count"
-                      className={`w-full bg-[#080d15] border ${isLicenseCountInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-slate-700/80 focus:border-blue-500 focus:ring-blue-500'
-                        } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 transition-all`}
+                      className={`w-full bg-white border ${isLicenseCountInvalid ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-[#E5E7EB] focus:border-[#1D6FD8] focus:ring-[#1D6FD8]/20'
+                        } text-[#000000] text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-2 transition-all shadow-sm placeholder:text-[#000000]/60`}
                     />
                     <div className="flex items-center justify-between text-xs mt-2 px-1">
-                      <span className="text-slate-400">
-                        Licenses Used: <strong className="text-slate-200">{licenseCountUsed}</strong> <span className="text-slate-500">(read-only)</span>
+                      <span className="text-[#000000]">
+                        Licenses Used: <strong className="text-[#000000]">{licenseCountUsed}</strong> <span className="text-[#000000]/70">(read-only)</span>
                       </span>
                       {isLicenseCountInvalid && (
-                        <span className="text-red-400 font-medium flex items-center gap-1">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span className="text-rose-600 font-medium flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
                           Cannot be lower than used ({licenseCountUsed})
                         </span>
                       )}
@@ -558,18 +553,18 @@ export default function SalesDashboardPage() {
                   </div>
 
                   {/* Field 5: Expiry Dates */}
-                  <div className="space-y-3 pt-2 border-t border-slate-800/80">
-                    <div className="flex justify-between items-center bg-[#080d15] border border-slate-800 rounded-xl px-4 py-3 text-xs">
-                      <span className="text-slate-400 font-medium">Current Subscription Expiry</span>
-                      <span className="text-slate-200 font-semibold flex items-center gap-1.5 font-mono">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="space-y-3 pt-2 border-t border-[#E5E7EB]">
+                    <div className="flex justify-between items-center bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-xs">
+                      <span className="text-[#000000] font-medium">Current Subscription Expiry</span>
+                      <span className="text-[#000000] font-semibold flex items-center gap-1.5 font-mono">
+                        <Clock className="w-3.5 h-3.5 text-[#1D6FD8]" />
                         {formatTimestamp(currentSubscription.subscriptionValidTill)}
                       </span>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-purple-400" />
+                      <label className="block text-xs font-semibold text-[#000000] uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-[#1D6FD8]" />
                         Extend Subscription Until
                       </label>
                       <input
@@ -577,29 +572,21 @@ export default function SalesDashboardPage() {
                         value={extensionDate}
                         min={getMinExtensionDate(currentSubscription.subscriptionValidTill)}
                         onChange={(e) => setExtensionDate(e.target.value)}
-                        className={`w-full bg-[#080d15] border ${isExtensionDateInvalid ? 'border-red-500 focus:border-red-500' : 'border-slate-700/80 focus:border-purple-500'
-                          } text-white text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-1 focus:ring-purple-500 transition-all custom-calendar-icon`}
+                        className={`w-full bg-white border ${isExtensionDateInvalid ? 'border-rose-500 focus:border-rose-500' : 'border-[#E5E7EB] focus:border-[#1D6FD8]'
+                          } text-[#000000] text-sm rounded-xl px-4 py-3.5 outline-none focus:ring-2 focus:ring-[#1D6FD8]/20 transition-all custom-calendar-icon shadow-sm`}
                       />
                       {isExtensionDateInvalid && (
-                        <p className="text-red-400 text-xs font-medium mt-1.5 px-1 flex items-center gap-1">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <p className="text-rose-600 text-xs font-medium mt-1.5 px-1 flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
                           Expiry date must be later than current expiry date.
                         </p>
                       )}
                     </div>
                   </div>
 
-                  {/* Read-Only Subscription Metadata (Auto-Debit) */}
-                  {/* <div className="bg-[#080d15] border border-slate-800/80 rounded-xl p-4 text-xs flex justify-between items-center">
-                    <span className="text-slate-400 font-medium">Recurring Auto Debit</span>
-                    <span className="text-slate-200 font-semibold px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700">
-                      {(currentSubscription.isRecurringAutoDebit ?? currentSubscription.recurringAutoDebit) ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </div> */}
-
                 </div>
               ) : (
-                <div className="bg-[#080d15]/50 border border-slate-800/80 rounded-xl p-6 text-center text-slate-500 text-xs">
+                <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 text-center text-[#000000] text-xs">
                   Select an organization above to manage subscription details.
                 </div>
               )}
@@ -607,21 +594,21 @@ export default function SalesDashboardPage() {
               {/* Error & Success Messages & Submit Button */}
               <div className="pt-2 space-y-4">
                 {subscriptionError && (
-                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2 animate-fade-in">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <div className="w-full p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 animate-fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                     <span>{subscriptionError}</span>
                   </div>
                 )}
                 {orgsError && (
-                  <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-center gap-2 animate-fade-in">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <div className="w-full p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 animate-fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                     <span>{orgsError}</span>
                   </div>
                 )}
 
                 {isSuccess ? (
-                  <div className="w-full py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2 animate-fade-in">
-                    <CheckCircle2 className="w-5 h-5" />
+                  <div className="w-full py-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold text-sm flex items-center justify-center gap-2 animate-fade-in">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     Subscription Updated Successfully!
                   </div>
                 ) : (
@@ -635,14 +622,14 @@ export default function SalesDashboardPage() {
                       isExtensionDateInvalid ||
                       isSubmitting
                     }
-                    className="w-full py-3.5 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-[0.98] text-white font-semibold text-sm transition-all duration-200 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
+                    className="w-full py-3.5 rounded-full bg-[#1D6FD8] hover:bg-[#1565C0] active:scale-[0.98] text-[#FFFFFF] font-bold text-sm transition-all duration-200 shadow-md shadow-[#1D6FD8]/25 hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     {isSubmitting ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
                         Update Subscription
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRight className="w-4 h-4 text-[#FFFFFF]" />
                       </>
                     )}
                   </button>
@@ -655,26 +642,26 @@ export default function SalesDashboardPage() {
 
         {/* Info Column */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-[#0b1120] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4">
-            <h3 className="text-white font-bold flex items-center gap-2 text-sm">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-6 shadow-sm space-y-4">
+            <h3 className="text-[#000000] font-extrabold flex items-center gap-2 text-sm">
+              <ShieldCheck className="w-4 h-4 text-[#1D6FD8]" />
               Subscription Management Guidelines
             </h3>
-            <ul className="space-y-3 text-xs text-slate-400 leading-relaxed">
+            <ul className="space-y-3 text-xs text-[#000000] leading-relaxed">
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1D6FD8] mt-1.5 shrink-0" />
                 Select an organization to load its active subscription and plan options.
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1D6FD8] mt-1.5 shrink-0" />
                 Changing the organization plan or payment tenure updates the backend payload dynamically.
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1D6FD8] mt-1.5 shrink-0" />
                 Allocated license count cannot be set lower than the licenses currently in use.
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1D6FD8] mt-1.5 shrink-0" />
                 Extending subscription expiry is optional; if left unchanged, the current expiry date is maintained.
               </li>
             </ul>
@@ -685,43 +672,43 @@ export default function SalesDashboardPage() {
 
       {/* Success Modal Popup */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#0b1120] border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl relative animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-6 sm:p-8 max-w-md w-full mx-4 shadow-2xl relative animate-scale-up">
             <button
               onClick={() => setShowSuccessModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 text-[#000000]/60 hover:text-[#000000] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 mb-5 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+              <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center text-emerald-600 mb-5 shadow-sm">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Subscription Updated!</h2>
-              <p className="text-slate-400 text-sm mb-6">
-                The subscription details for <span className="text-sky-400 font-semibold">{selectedCompanyName}</span> have been successfully saved to the database.
+              <h2 className="text-xl font-bold text-[#000000] mb-2">Subscription Updated!</h2>
+              <p className="text-[#000000] text-sm mb-6">
+                The subscription details for <span className="text-[#1D6FD8] font-bold">{selectedCompanyName}</span> have been successfully saved.
               </p>
-              <div className="bg-[#080d15] border border-slate-800 rounded-xl p-4 w-full mb-6 text-left space-y-2.5">
+              <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 w-full mb-6 text-left space-y-2.5">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-500">Plan Name</span>
-                  <span className="text-white font-semibold">{selectedPlanDisplayName || selectedPlanName || 'N/A'}</span>
+                  <span className="text-[#000000]/70">Plan Name</span>
+                  <span className="text-[#000000] font-bold">{selectedPlanDisplayName || selectedPlanName || 'N/A'}</span>
                 </div>
-                <div className="flex justify-between text-xs border-t border-slate-800/80 pt-2.5">
-                  <span className="text-slate-500">Payment Tenure</span>
-                  <span className="text-amber-400 font-semibold uppercase">{paymentTenure}</span>
+                <div className="flex justify-between text-xs border-t border-[#E5E7EB] pt-2.5">
+                  <span className="text-[#000000]/70">Payment Tenure</span>
+                  <span className="text-[#1D6FD8] font-bold uppercase">{paymentTenure}</span>
                 </div>
-                <div className="flex justify-between text-xs border-t border-slate-800/80 pt-2.5">
-                  <span className="text-slate-500">Allocated Licenses</span>
-                  <span className="text-blue-400 font-semibold">{allocatedLicenses}</span>
+                <div className="flex justify-between text-xs border-t border-[#E5E7EB] pt-2.5">
+                  <span className="text-[#000000]/70">Allocated Licenses</span>
+                  <span className="text-[#000000] font-bold">{allocatedLicenses}</span>
                 </div>
-                <div className="flex justify-between text-xs border-t border-slate-800/80 pt-2.5">
-                  <span className="text-slate-500">Expiry Date</span>
-                  <span className="text-emerald-400 font-semibold">{formatTimestamp(currentSubscription?.subscriptionValidTill)}</span>
+                <div className="flex justify-between text-xs border-t border-[#E5E7EB] pt-2.5">
+                  <span className="text-[#000000]/70">Expiry Date</span>
+                  <span className="text-emerald-700 font-bold">{formatTimestamp(currentSubscription?.subscriptionValidTill)}</span>
                 </div>
               </div>
               <button
                 onClick={() => setShowSuccessModal(false)}
-                className="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-sm transition-all shadow-[0_0_15px_rgba(14,165,233,0.2)]"
+                className="w-full py-3 rounded-full bg-[#1D6FD8] hover:bg-[#1565C0] text-[#FFFFFF] font-bold text-sm transition-all shadow-md shadow-[#1D6FD8]/25"
               >
                 Done
               </button>
@@ -734,12 +721,12 @@ export default function SalesDashboardPage() {
       <style dangerouslySetInnerHTML={{
         __html: `
         .custom-calendar-icon::-webkit-calendar-picker-indicator {
-          filter: invert(1);
-          opacity: 0.5;
+          filter: none;
+          opacity: 0.6;
           cursor: pointer;
         }
         .custom-calendar-icon::-webkit-calendar-picker-indicator:hover {
-          opacity: 0.8;
+          opacity: 1;
         }
         @keyframes fadeIn {
           from { opacity: 0; }

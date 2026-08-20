@@ -201,11 +201,10 @@ export const AccountDetailModal: React.FC<AccountDetailModalProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-3 px-3 sm:px-4 text-xs font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-all ${
-                activeTab === tab.id
+              className={`py-3 px-3 sm:px-4 text-xs font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === tab.id
                   ? 'border-sky-500 text-sky-700'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
+                }`}
             >
               {tab.label}
               {typeof tab.badge === 'number' && tab.badge > 0 && (
@@ -581,11 +580,10 @@ export const AccountDetailModal: React.FC<AccountDetailModalProps> = ({
                       {(detail?.onboarding?.milestones || []).map((m) => (
                         <div
                           key={m.milestoneKey}
-                          className={`p-3 rounded-lg border flex items-center justify-between ${
-                            m.achievedAt
+                          className={`p-3 rounded-lg border flex items-center justify-between ${m.achievedAt
                               ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
                               : 'bg-white border-slate-200 text-slate-400'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2">
                             {m.achievedAt ? (

@@ -54,7 +54,7 @@ export default function CustomerSuccessDashboardPage() {
           setIsAuthenticated(true);
           return;
         }
-        
+
         const refresh = await authService.refreshSession();
         if (refresh.success) {
           setIsAuthenticated(true);

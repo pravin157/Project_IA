@@ -47,8 +47,8 @@ export default function DashboardPortalPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#080d15] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#1D6FD8] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -66,16 +66,16 @@ export default function DashboardPortalPage() {
   const Icon = dashboard.icon;
 
   return (
-    <div className="w-full h-full text-slate-100 antialiased font-sans flex flex-col">
+    <div className="w-full h-full text-[#000000] antialiased font-sans flex flex-col">
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col justify-center items-center text-center">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-sky-500/20 to-teal-500/20 flex items-center justify-center mb-6 border border-sky-500/30">
-          <LayoutGrid className="w-10 h-10 text-sky-400" />
+        <div className="w-20 h-20 rounded-2xl bg-[#1D6FD8]/10 flex items-center justify-center mb-6 border border-[#E5E7EB] shadow-sm">
+          <LayoutGrid className="w-10 h-10 text-[#1D6FD8]" />
         </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-[#000000] tracking-tight mb-4">
           Welcome to Admin Portal
         </h2>
-        <p className="text-slate-400 text-sm sm:text-base max-w-lg">
+        <p className="text-[#000000] text-sm sm:text-base max-w-lg">
           You are securely logged in. Please select a module from the vertical sidebar on the left to begin managing your workspace and client lifecycles.
         </p>
       </main>
