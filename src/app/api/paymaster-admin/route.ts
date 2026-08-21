@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const PAYMASTER_ENDPOINT = process.env.PAYMASTER_ENDPOINT || 'http://localhost:9097';
+const PAYMASTER_ENDPOINT = process.env.PAYMASTER_ENDPOINT || 'https://paymaster.intoaec.ai';
 const PAYMASTER_APIKEY = process.env.AECAUTOPILOT_APIKEY || 'tR4hTjS954LxUWtRM720BN9yiUbcRUcSB5o9ZjWNVvXGiPFrLtDKRJvSoPDUIw6M';
 
 export async function POST(request: Request) {
