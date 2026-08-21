@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const USERHUB_SESSION_ENDPOINT = process.env.USERHUB_SESSION_ENDPOINT || 'https://userhub.aecplayhouse.com/session';
+const rawEndpoint = process.env.USERHUB_SESSION_ENDPOINT || 'https://userhub.intoaec.ai/session';
+const USERHUB_SESSION_ENDPOINT = rawEndpoint.endsWith('/session')
+  ? rawEndpoint
+  : `${rawEndpoint.replace(/\/+$/, '')}/session`;
 
 export async function POST(request: Request) {
   try {

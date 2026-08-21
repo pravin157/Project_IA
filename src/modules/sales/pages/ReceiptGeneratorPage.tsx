@@ -394,7 +394,7 @@ export default function ReceiptGeneratorPage() {
       }
 
       const receiptId = response.body.receiptId;
-      const receiptUrl = `https://app.aecplayhouse.com/subscription/receipt?receiptId=${receiptId}`;
+      const receiptUrl = `https://app.intoaec.ai/subscription/receipt?receiptId=${receiptId}`;
 
       const newReceipt: ReceiptData = {
         id: receiptId,
