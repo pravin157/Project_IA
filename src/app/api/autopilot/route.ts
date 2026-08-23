@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const autopilotUrl = `${AECAUTOPILOT_ENDPOINT.replace(/\/+$/, '')}/autopilot`;
 
     const response = await fetch(autopilotUrl, {
-      method: 'POST',
+      method: 'POST', 
       headers: {
         'Content-Type': 'application/json',
         apikey: apiKey,
