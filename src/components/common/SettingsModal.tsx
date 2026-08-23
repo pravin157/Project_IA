@@ -46,28 +46,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
-      style={{ background: 'rgba(8,13,21,0.85)', backdropFilter: 'blur(12px)' }}>
-      <div className="w-full max-w-lg rounded-2xl border p-6"
-        style={{
-          background: 'linear-gradient(135deg, #111827 0%, #0f172a 100%)',
-          borderColor: 'rgba(51,65,85,0.6)',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-        }}>
+      style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}>
+      <div className="w-full max-w-lg rounded-2xl border p-6 bg-white border-[#E5E7EB] shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl" style={{ background: 'rgba(14,165,233,0.1)' }}>
-              <Settings className="w-5 h-5 text-sky-400" />
+            <div className="p-2 rounded-xl bg-[#1D6FD8]/10">
+              <Settings className="w-5 h-5 text-[#1D6FD8]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-100">Connection settings</h3>
-              <p className="text-xs text-slate-500">Usually leave this alone — defaults work for CS</p>
+              <h3 className="text-base font-bold text-[#000000]">Connection settings</h3>
+              <p className="text-xs text-[#000000]/60">Usually leave this alone — defaults work for CS</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg transition-all hover:scale-110"
-            style={{ background: 'rgba(30,41,59,0.8)', color: '#64748b', border: '1px solid rgba(51,65,85,0.6)' }}
+            className="p-1.5 rounded-lg transition-all hover:scale-110 bg-[#F8FAFC] text-[#000000]/70 border border-[#E5E7EB]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -76,26 +70,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Body */}
         <div className="py-5 space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">
-              Override API key <span className="text-slate-600 font-normal normal-case">(optional)</span>
+            <label className="block text-xs font-bold text-[#000000]/60 mb-2 uppercase tracking-wider">
+              Override API key <span className="text-[#000000]/40 font-normal normal-case">(optional)</span>
             </label>
             <div className="relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#000000]/40" />
               <input
                 type="password"
                 value={keyInput}
                 onChange={(e) => setKeyInput(e.target.value)}
                 placeholder="Leave blank to use the server default"
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs font-mono text-slate-200 placeholder-slate-600 focus:outline-none transition-all"
-                style={{
-                  background: 'rgba(15,23,42,0.8)',
-                  border: '1px solid rgba(51,65,85,0.6)',
-                }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(14,165,233,0.4)'; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(51,65,85,0.6)'; }}
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs font-mono text-[#000000] placeholder-slate-400 bg-white border border-[#E5E7EB] focus:outline-none transition-all"
+                onFocus={(e) => { e.currentTarget.style.borderColor = '#1D6FD8'; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = '#E5E7EB'; }}
               />
             </div>
-            <p className="text-[11px] text-slate-600 mt-1.5">
+            <p className="text-[11px] text-[#000000]/60 mt-1.5">
               Only needed if your admin gave you a different key. Most CS teammates can ignore this.
             </p>
           </div>
@@ -103,28 +93,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {testStatus !== 'idle' && (
             <div className="p-3 rounded-xl border text-xs flex items-start gap-2"
               style={testStatus === 'testing'
-                ? { background: 'rgba(14,165,233,0.08)', borderColor: 'rgba(14,165,233,0.25)', color: '#7dd3fc' }
+                ? { background: 'rgba(29,111,216,0.05)', borderColor: 'rgba(29,111,216,0.2)', color: '#1D6FD8' }
                 : testStatus === 'success'
-                ? { background: 'rgba(16,185,129,0.08)', borderColor: 'rgba(16,185,129,0.25)', color: '#6ee7b7' }
-                : { background: 'rgba(244,63,94,0.08)', borderColor: 'rgba(244,63,94,0.25)', color: '#fca5a5' }}>
+                ? { background: 'rgba(5,150,105,0.05)', borderColor: 'rgba(5,150,105,0.2)', color: '#059669' }
+                : { background: 'rgba(225,29,72,0.05)', borderColor: 'rgba(225,29,72,0.2)', color: '#e11d48' }}>
               {testStatus === 'testing' ? (
-                <RefreshCw className="w-4 h-4 animate-spin shrink-0 mt-0.5 text-sky-400" />
+                <RefreshCw className="w-4 h-4 animate-spin shrink-0 mt-0.5 text-[#1D6FD8]" />
               ) : testStatus === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 text-[#e11d48] shrink-0 mt-0.5" />
               )}
               <span>{testMessage}</span>
             </div>
           )}
 
-          <div className="p-3.5 rounded-xl border space-y-2"
-            style={{ background: 'rgba(15,23,42,0.6)', borderColor: 'rgba(51,65,85,0.4)' }}>
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-              <Server className="w-4 h-4 text-sky-400" />
+          <div className="p-3.5 rounded-xl border space-y-2 bg-slate-50 border-[#E5E7EB]">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#000000]">
+              <Server className="w-4 h-4 text-[#1D6FD8]" />
               <span>Services this hub uses</span>
             </div>
-            <ul className="pl-6 list-disc space-y-1 text-[11px] text-slate-500">
+            <ul className="pl-6 list-disc space-y-1 text-[11px] text-[#000000]/60">
               <li>Autopilot — account health, adoption, alerts</li>
               <li>Paymaster — which orgs are on All-in-One</li>
             </ul>
@@ -132,20 +121,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+        <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
           <button
             onClick={handleTestConnection}
             disabled={testStatus === 'testing'}
-            className="px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
-            style={{ background: 'rgba(30,41,59,0.8)', color: '#94a3b8', border: '1px solid rgba(51,65,85,0.6)' }}
+            className="px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50 bg-white text-[#000000] border border-[#E5E7EB]"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${testStatus === 'testing' ? 'animate-spin text-sky-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${testStatus === 'testing' ? 'animate-spin text-[#1D6FD8]' : ''}`} />
             Test connection
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95"
-            style={{ background: 'linear-gradient(135deg, #0ea5e9, #0d9488)', boxShadow: '0 0 12px rgba(14,165,233,0.25)' }}
+            className="px-5 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 bg-[#1D6FD8] hover:bg-[#1565C0] border border-[#1D6FD8]"
           >
             Save & close
           </button>
