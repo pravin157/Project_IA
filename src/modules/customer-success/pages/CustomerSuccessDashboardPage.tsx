@@ -167,8 +167,8 @@ Please keep the tone helpful, non-technical, and focused on offering a 15-minute
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#080d15] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#1D6FD8] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -176,7 +176,7 @@ Please keep the tone helpful, non-technical, and focused on offering a 15-minute
   const accounts = data?.accounts || [];
 
   return (
-    <div className="min-h-screen text-slate-100 antialiased selection:bg-sky-500 selection:text-white pb-12" style={{ background: '#080d15' }}>
+    <div className="min-h-screen text-[#000000] antialiased selection:bg-[#1D6FD8] selection:text-white pb-12 bg-slate-50">
       <Navbar
         searchQuery={filter.searchQuery}
         onSearchChange={(q) => handleFilterChange({ searchQuery: q })}
@@ -200,15 +200,15 @@ Please keep the tone helpful, non-technical, and focused on offering a 15-minute
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
         {error && (
           <div className="p-4 rounded-2xl text-xs flex items-start justify-between gap-3 animate-fade-in"
-            style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.25)', color: '#fca5a5' }}>
+            style={{ background: 'rgba(225,29,72,0.05)', border: '1px solid rgba(225,29,72,0.2)', color: '#e11d48' }}>
             <div className="flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#f87171' }} />
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#e11d48' }} />
               <span>{error}</span>
             </div>
             <button
               onClick={loadDashboardData}
               className="px-3 py-1 rounded-lg font-bold text-[11px] shrink-0 transition-all active:scale-95"
-              style={{ background: 'rgba(244,63,94,0.2)', color: '#f87171', border: '1px solid rgba(244,63,94,0.3)' }}
+              style={{ background: 'rgba(225,29,72,0.1)', color: '#e11d48', border: '1px solid rgba(225,29,72,0.2)' }}
             >
               Retry
             </button>
@@ -217,8 +217,8 @@ Please keep the tone helpful, non-technical, and focused on offering a 15-minute
 
         {isLoading && loadSourceHint && (
           <div className="p-3 rounded-2xl text-xs flex items-center gap-2 animate-pulse"
-            style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.2)', color: '#7dd3fc' }}>
-            <RefreshCw className="w-3.5 h-3.5 animate-spin" style={{ color: '#38bdf8' }} />
+            style={{ background: 'rgba(29,111,216,0.05)', border: '1px solid rgba(29,111,216,0.2)', color: '#1D6FD8' }}>
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" style={{ color: '#1D6FD8' }} />
             <span>{loadSourceHint}</span>
           </div>
         )}
