@@ -805,7 +805,7 @@ export default function ReceiptGeneratorPage() {
                     <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3.5 px-4 font-mono font-bold text-[#1976D2]">
                         <a
-                          href={`https://app.aecplayhouse.com/subscription/receipt?receiptId=${item.id}`}
+                          href={`https://app.intoaec.ai/subscription/receipt?receiptId=${item.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="hover:underline"
