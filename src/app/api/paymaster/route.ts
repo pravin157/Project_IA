@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const PAYMASTER_PROD_ENDPOINT = process.env.PAYMASTER_ENDPOINT || 'https://paymaster.intoaec.ai';
+const PAYMASTER_PROD_ENDPOINT = process.env.PAYMASTER_ENDPOINT || 'https://paymaster.aecplayhouse.com';
 
 export async function POST(request: Request) {
   try {

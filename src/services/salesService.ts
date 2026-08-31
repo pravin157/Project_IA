@@ -11,8 +11,16 @@ import { createManualReceiptApi, CreateManualReceiptParams } from '@/api/sales/c
 import { getAllPlansApi } from '@/api/sales/getAllPlans';
 import { getSubscriptionPlanByIdApi } from '@/api/sales/getSubscriptionPlanById';
 import { updateSubscriptionApi, UpdateSubscriptionParams } from '@/api/sales/updateSubscription';
+import { getPaymentHistoryApi, GetPaymentHistoryParams, PaymentHistoryResponse } from '@/api/sales/getPaymentHistory';
+import { getReceiptLineItemsApi } from '@/api/sales/getReceiptLineItems';
 
 export const salesService = {
+  async getReceiptLineItems(sphId: string): Promise<any[]> {
+    return getReceiptLineItemsApi(sphId);
+  },
+  async getPaymentHistory(params: GetPaymentHistoryParams): Promise<PaymentHistoryResponse> {
+    return getPaymentHistoryApi(params);
+  },
   async getOrganizations(): Promise<any[]> {
     return getOrganizationsApi();
   },
