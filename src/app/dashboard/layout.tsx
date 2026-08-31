@@ -70,7 +70,12 @@ const menuItems: MenuItem[] = [
   {
     title: 'Founder',
     icon: Rocket,
-    submenu: []
+    submenu: [
+      {
+        title: 'Payment History',
+        path: '/dashboard/founder/payment-history',
+      }
+    ]
   }
 ];
 
@@ -85,6 +90,7 @@ export default function DashboardLayout({
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     Customer: false,
     Sales: true,
+    Founder: false,
   });
 
   // State for mobile sidebar visibility
@@ -97,6 +103,9 @@ export default function DashboardLayout({
     }
     if (pathname.includes('/dashboard/sales')) {
       setExpandedMenus((prev) => ({ ...prev, Sales: true }));
+    }
+    if (pathname.includes('/dashboard/founder')) {
+      setExpandedMenus((prev) => ({ ...prev, Founder: true }));
     }
   }, [pathname]);
 

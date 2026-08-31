@@ -5,7 +5,6 @@ import {
   FileText,
   Building2,
   Calendar,
-  DollarSign,
   Clock,
   Users,
   Globe,
@@ -628,7 +627,6 @@ export default function ReceiptGeneratorPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-[#1976D2]" />
                     Amount ({currencySymbol})
                   </label>
                   <span className="text-[10px] text-[#1976D2] font-mono font-bold bg-[#1976D2]/10 px-1.5 py-0.5 rounded border border-[#1976D2]/20">
